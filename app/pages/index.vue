@@ -7,7 +7,7 @@ definePageMeta({ layout: 'landing' })
 <template>
   <div class="layout">
     <aside class="pitch">
-      <p>Scan your invoices with our OCR, handle your payments, we'll take care of the data.</p>
+      <p>Scan your invoices with our OCR and manage your payments — we'll take care of the data.</p>
     </aside>
 
     <section class="hero">
@@ -17,7 +17,7 @@ definePageMeta({ layout: 'landing' })
     </section>
 
     <aside class="pitch pitch-right">
-      <p>Don't guess who's spending for you, manage this with our unique links for each user you create.</p>
+      <p>Stop guessing who's spending on your behalf — track every teammate with their own unique link.</p>
     </aside>
   </div>
 
@@ -29,30 +29,27 @@ definePageMeta({ layout: 'landing' })
     <div class="how-grid">
       <article class="how-card">
         <p>
-          The application registers physical invoices and transforms them into virtual
-          invoices that you can manage by sending or saving them to generate reports,
-          track expenses, traceability, and projections. An OCR (optical character
-          recognition) tool reads all the information on your invoices, extracting as
-          much information as possible. This OCR is constantly being trained to extract
-          data more accurately as it learns from your data. If it doesn't recognize
-          certain fields, it will provide them so you can easily fill them in.
+          ScanMe captures your paper invoices and turns them into digital ones you can
+          send, save, and use to generate reports, track expenses, and forecast
+          spending. Our OCR (optical character recognition) reads everything on each
+          invoice and pulls out as much data as it can. It keeps learning from your
+          activity to get more accurate over time — and when a field isn't recognized,
+          it flags it so you can fill it in with a single tap.
         </p>
       </article>
 
       <article class="how-card">
         <p>
-          With our OCR training, you can simply record your expenses. We will segment
-          all your expenses so you can see real data. Our way of viewing the data will
-          be easy to read, easy to record, without complications or long forms to fill
-          out.
+          Thanks to our trained OCR, recording expenses is effortless. We automatically
+          categorize every entry so you see clear, real numbers — easy to read, quick
+          to update, with no long forms to fill out.
         </p>
       </article>
 
       <article class="how-card">
         <p>
-          Your data is always secure, preventing other users from seeing sensitive
-          spending information; only you and those you authorize know about your
-          transactions.
+          Your data stays private. Other users can't see your sensitive spending —
+          only you and the people you authorize ever see your transactions.
         </p>
       </article>
     </div>
