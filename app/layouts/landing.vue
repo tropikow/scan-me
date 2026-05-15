@@ -11,7 +11,7 @@ const navLinks = [
     <nav class="top">
       <div class="inner">
         <NuxtLink to="/" class="logo" aria-label="scan-me home">
-          <span class="dot" aria-hidden="true" />
+          <img src="~/assets/images/logo-1.png" alt="" class="logo-img" />
           <span>scan-me</span>
         </NuxtLink>
 
@@ -33,7 +33,7 @@ const navLinks = [
     <footer>
       <div class="foot-inner">
         <div class="logo foot-logo">
-          <span class="dot" aria-hidden="true" />
+          <img src="~/assets/images/logo-1.png" alt="" class="logo-img foot-logo-img" />
           <span>scan-me</span>
         </div>
         <div class="foot-links">
@@ -87,6 +87,11 @@ nav.top {
   letter-spacing: -0.02em;
   font-size: 16px;
   color: var(--ink);
+}
+.logo-img {
+  height: 28px;
+  width: auto;
+  display: block;
 }
 .logo .dot {
   width: 18px;
@@ -167,9 +172,8 @@ footer {
 .foot-logo {
   font-size: 14px;
 }
-.foot-logo .dot {
-  width: 14px;
-  height: 14px;
+.foot-logo-img {
+  height: 22px;
 }
 .foot-links {
   display: flex;
