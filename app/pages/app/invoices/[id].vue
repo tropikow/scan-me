@@ -1,18 +1,96 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'app' })
 
+type InvoiceRow = {
+  id: string
+  vendor: string | null
+  vendor_address: string | null
+  invoice_number: string | null
+  invoice_date: string | null
+  currency: string | null
+  subtotal: number | null
+  tax: number | null
+  tax_rate: number | null
+  total: number | null
+  confidence: number | null
+  image_path: string | null
+  tags: string[] | null
+  created_at: string
+}
+
+type InvoiceItem = {
+  id: string
+  position: number
+  description: string
+  quantity: number | null
+  unit_price: number | null
+  amount: number
+}
+
 const route = useRoute()
 const invoiceId = computed(() => route.params.id as string)
 
-useHead({ title: () => `scan-me — invoice #${invoiceId.value}` })
+const supabase = useSupabaseClient()
 
-const items = [
-  { name: 'Milk 1L', qty: 2, unit: '1.60', amount: '3.20' },
-  { name: 'Bread sourdough', qty: 1, unit: '2.40', amount: '2.40' },
-  { name: 'Olive oil 750ml', qty: 1, unit: '9.80', amount: '9.80' },
-  { name: 'Pasta penne', qty: 1, unit: '1.20', amount: '1.20' },
-  { name: 'Tomato sauce', qty: 1, unit: '2.10', amount: '2.10' }
-]
+const { data, pending, error } = await useAsyncData(
+  () => `invoice-${invoiceId.value}`,
+  async () => {
+    const { data: inv, error: invErr } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('id', invoiceId.value)
+      .maybeSingle()
+    if (invErr) throw invErr
+    if (!inv) return null
+
+    const { data: items, error: itemsErr } = await supabase
+      .from('invoice_items')
+      .select('*')
+      .eq('invoice_id', invoiceId.value)
+      .order('position', { ascending: true })
+    if (itemsErr) throw itemsErr
+
+    let signedUrl: string | null = null
+    if ((inv as InvoiceRow).image_path) {
+      const { data: signed } = await supabase.storage
+        .from('receipts')
+        .createSignedUrl((inv as InvoiceRow).image_path as string, 60 * 60)
+      signedUrl = signed?.signedUrl ?? null
+    }
+
+    return {
+      invoice: inv as InvoiceRow,
+      items: (items ?? []) as InvoiceItem[],
+      signedUrl
+    }
+  }
+)
+
+useHead({
+  title: () => `scan-me — ${data.value?.invoice?.vendor || 'invoice'}`
+})
+
+function formatDate(iso: string | null, fallback?: string): string {
+  const src = iso || fallback || ''
+  if (!src) return '—'
+  const d = new Date(src)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d
+    .toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
+    .toUpperCase()
+}
+
+function symbolFor(currency: string | null): string {
+  return currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
+}
+function fmt(n: number | null, currency: string | null): string {
+  if (n == null) return '—'
+  const s = symbolFor(currency)
+  return `${s} ${n.toFixed(2)}`.trim()
+}
+function fmtPlain(n: number | null): string {
+  return n == null ? '—' : n.toFixed(2)
+}
 </script>
 
 <template>
@@ -20,61 +98,80 @@ const items = [
     <div class="topbar">
       <div>
         <div class="crumb mono">
-          <NuxtLink to="/app/invoices">Invoices</NuxtLink> › #{{ invoiceId }}
+          <NuxtLink to="/app/invoices">Invoices</NuxtLink> ›
+          <span v-if="data?.invoice">#{{ data.invoice.id.slice(0, 8) }}</span>
+          <span v-else>#{{ invoiceId.slice(0, 8) }}</span>
         </div>
-        <h1>Carrefour Express</h1>
+        <h1>{{ data?.invoice?.vendor || (pending ? 'Loading…' : 'Not found') }}</h1>
       </div>
       <div class="actions">
-        <button class="btn-hifi btn-ghost btn-sm">↓ PDF</button>
-        <button class="btn-hifi btn-ghost btn-sm">✎ Edit</button>
-        <button class="btn-hifi btn-icon" title="More">⋯</button>
+        <button class="btn-hifi btn-ghost btn-sm" disabled>↓ PDF</button>
+        <button class="btn-hifi btn-ghost btn-sm" disabled>✎ Edit</button>
       </div>
     </div>
 
     <section class="route">
-      <div class="inv-hero">
+      <div v-if="pending" class="state">Loading…</div>
+
+      <div v-else-if="error || !data?.invoice" class="state error">
+        Invoice not found. <NuxtLink to="/app/invoices">Back to invoices</NuxtLink>
+      </div>
+
+      <div v-else class="inv-hero">
         <div class="inv-thumb">
-          <div class="recpaper">
-            <h5>CARREFOUR EXPRESS</h5>
-            <div class="addr">CALLE MAYOR 12 · MADRID</div>
-            <hr />
-            <div class="litem"><span>Milk 1L × 2</span><span>3.20</span></div>
-            <div class="litem"><span>Bread sourdough</span><span>2.40</span></div>
-            <div class="litem"><span>Olive oil 750ml</span><span>9.80</span></div>
-            <div class="litem"><span>Pasta penne</span><span>1.20</span></div>
-            <div class="litem"><span>Tomato sauce</span><span>2.10</span></div>
-            <hr />
-            <div class="tot"><span>TOTAL</span><span>€ 42.18</span></div>
-          </div>
+          <img
+            v-if="data.signedUrl"
+            :src="data.signedUrl"
+            alt="Receipt scan"
+            class="inv-img"
+          />
+          <div v-else class="inv-thumb-empty">No image available</div>
         </div>
 
         <div class="inv-meta">
-          <span class="card-eyebrow">INVOICE · #{{ invoiceId }}</span>
-          <h2 class="merchant">Carrefour Express</h2>
-          <div class="bigamt">€ 42.18</div>
-          <div class="submeta">13 MAY 2026 · 18:42 · MADRID</div>
-          <div class="chips">
-            <NuxtLink to="/app/collections" class="chip">Hogar › Comida</NuxtLink>
-            <NuxtLink to="/app/people/maria" class="chip outline">
-              <span class="avatar sm">M</span> @maria
-            </NuxtLink>
-            <span class="chip outline">weekly</span>
+          <span class="card-eyebrow">INVOICE · #{{ data.invoice.id.slice(0, 8) }}</span>
+          <h2 class="merchant">{{ data.invoice.vendor || 'Untitled' }}</h2>
+          <div class="bigamt">{{ fmt(data.invoice.total, data.invoice.currency) }}</div>
+          <div class="submeta">
+            {{ formatDate(data.invoice.invoice_date, data.invoice.created_at) }}
+            <template v-if="data.invoice.vendor_address"> · {{ data.invoice.vendor_address }}</template>
+            <template v-if="data.invoice.invoice_number"> · №{{ data.invoice.invoice_number }}</template>
           </div>
 
-          <table class="inv-table">
+          <div v-if="data.invoice.tags?.length" class="chips">
+            <span v-for="t in data.invoice.tags" :key="t" class="chip outline">{{ t }}</span>
+          </div>
+
+          <table v-if="data.items.length" class="inv-table">
             <thead>
-              <tr><th>Item</th><th>Qty</th><th class="r">Unit</th><th class="r">Amount</th></tr>
+              <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th class="r">Unit</th>
+                <th class="r">Amount</th>
+              </tr>
             </thead>
             <tbody>
-              <tr v-for="item in items" :key="item.name">
-                <td>{{ item.name }}</td>
-                <td>{{ item.qty }}</td>
-                <td class="r">{{ item.unit }}</td>
-                <td class="r">{{ item.amount }}</td>
+              <tr v-for="it in data.items" :key="it.id">
+                <td>{{ it.description }}</td>
+                <td>{{ it.quantity ?? '—' }}</td>
+                <td class="r">{{ fmtPlain(it.unit_price) }}</td>
+                <td class="r">{{ fmtPlain(it.amount) }}</td>
               </tr>
-              <tr class="subtotal"><td colspan="3">Subtotal</td><td class="r">34.86</td></tr>
-              <tr class="subtotal"><td colspan="3">Tax 21%</td><td class="r">7.32</td></tr>
-              <tr class="total"><td colspan="3">Total</td><td class="r">€ 42.18</td></tr>
+              <tr v-if="data.invoice.subtotal != null" class="subtotal">
+                <td colspan="3">Subtotal</td>
+                <td class="r">{{ fmtPlain(data.invoice.subtotal) }}</td>
+              </tr>
+              <tr v-if="data.invoice.tax != null" class="subtotal">
+                <td colspan="3">
+                  Tax<template v-if="data.invoice.tax_rate != null"> {{ Math.round(data.invoice.tax_rate * 100) }}%</template>
+                </td>
+                <td class="r">{{ fmtPlain(data.invoice.tax) }}</td>
+              </tr>
+              <tr class="total">
+                <td colspan="3">Total</td>
+                <td class="r">{{ fmt(data.invoice.total, data.invoice.currency) }}</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -111,6 +208,15 @@ const items = [
 
 .route { padding: 36px; }
 
+.state {
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--surface);
+  border-radius: var(--radius);
+  color: var(--ink-2);
+}
+.state.error a { color: var(--ink); text-decoration: underline; }
+
 .inv-hero {
   display: grid;
   grid-template-columns: 1fr 1.4fr;
@@ -127,12 +233,19 @@ const items = [
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
-.inv-thumb .recpaper {
-  width: 78%;
-  aspect-ratio: 4 / 5.2;
-  transform: rotate(-1deg);
-  padding: 20px 18px;
+.inv-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+}
+.inv-thumb-empty {
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--ink-3);
 }
 
 .inv-meta {
@@ -194,11 +307,14 @@ const items = [
   font-weight: 500;
 }
 .inv-table th.r { text-align: right; }
+.inv-table tr.subtotal td {
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  color: var(--ink-2);
+}
 .inv-table tr.total td {
   border-bottom: none;
   padding-top: 16px;
   font-weight: 700;
   font-size: 15px;
 }
-.inv-table tr.subtotal td { color: var(--ink-2); }
 </style>

@@ -1,6 +1,28 @@
 <script setup lang="ts">
-// no script-side data — nav items are inlined in template so the SVG icons
-// stay in the Vue namespace and don't go through v-html
+const router = useRouter()
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+
+const displayName = computed(() => {
+  const meta = user.value?.user_metadata as { full_name?: string } | undefined
+  return meta?.full_name || user.value?.email || 'Account'
+})
+
+const avatarInitial = computed(() => {
+  const source = displayName.value || user.value?.email || '?'
+  return source.charAt(0).toUpperCase()
+})
+
+const planLabel = computed(() => {
+  const meta = user.value?.user_metadata as { account_type?: string } | undefined
+  const type = meta?.account_type === 'business' ? 'BUSINESS' : 'PERSONAL'
+  return `${type} · FREE`
+})
+
+async function signOut() {
+  await supabase.auth.signOut()
+  await router.push('/signin')
+}
 </script>
 
 <template>
@@ -8,7 +30,7 @@
     <aside class="sidebar">
       <div class="sb-head">
         <NuxtLink to="/app/dashboard" class="sb-logo">
-          <span class="sb-logo-dot" aria-hidden="true" />
+          <img src="~/assets/images/logo-1.png" alt="" class="sb-logo-img" />
           <span>scan-me</span>
         </NuxtLink>
         <button class="btn-hifi btn-icon" title="Notifications" aria-label="Notifications">
@@ -51,18 +73,17 @@
 
       <div class="sb-foot">
         <div class="sb-nav-label">ACCOUNT</div>
-        <button type="button" class="nav-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="m4.6 9 2.1 1.2-2.1 1.2M4.6 15l2.1-1.2-2.1-1.2M9 4.6l1.2 2.1L11.4 4.6M9 19.4l1.2-2.1 1.2 2.1M19.4 9l-2.1 1.2 2.1 1.2M19.4 15l-2.1-1.2 2.1-1.2M15 4.6l-1.2 2.1L12.6 4.6M15 19.4l-1.2-2.1-1.2 2.1"/></svg>
-          Settings
+        <button type="button" class="nav-item" @click="signOut">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 17l5-5-5-5"/><line x1="20" y1="12" x2="9" y2="12"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
+          Sign out
         </button>
-        <NuxtLink to="/" class="sb-user">
-          <span class="avatar md">J</span>
+        <div class="sb-user">
+          <span class="avatar md">{{ avatarInitial }}</span>
           <div>
-            <div class="sb-user-name">Jane Doe</div>
-            <div class="sb-user-plan">FREE · 47/100</div>
+            <div class="sb-user-name">{{ displayName }}</div>
+            <div class="sb-user-plan">{{ planLabel }}</div>
           </div>
-          <svg class="gear" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="9 18 15 12 9 6"/></svg>
-        </NuxtLink>
+        </div>
       </div>
     </aside>
 
@@ -113,19 +134,10 @@
   font-size: 15px;
   color: var(--ink);
 }
-.sb-logo-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--ink);
-  position: relative;
-}
-.sb-logo-dot::after {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border-radius: 50%;
-  border: 1.5px solid var(--bg);
+.sb-logo-img {
+  height: 22px;
+  width: auto;
+  display: block;
 }
 
 .sb-search {

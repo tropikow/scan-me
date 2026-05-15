@@ -7,14 +7,28 @@ const props = withDefaults(defineProps<{ defaultMode?: Mode }>(), {
 })
 
 const router = useRouter()
+const supabase = useSupabaseClient()
+const currentUser = useSupabaseUser()
+
+watchEffect(() => {
+  if (currentUser.value) {
+    router.replace('/app/dashboard')
+  }
+})
 
 const mode = ref<Mode>(props.defaultMode)
 const accountType = ref<AccountType>('personal')
 const submitting = ref(false)
+const errorMsg = ref<string | null>(null)
+const pendingConfirmationEmail = ref<string | null>(null)
 
 const name = ref('')
 const email = ref('')
 const password = ref('')
+
+watch(mode, () => {
+  errorMsg.value = null
+})
 
 const copy = computed(() =>
   mode.value === 'signin'
@@ -34,12 +48,60 @@ const copy = computed(() =>
       }
 )
 
-function handleSubmit() {
+async function handleSubmit() {
   if (submitting.value) return
+  errorMsg.value = null
+
+  if (!email.value || !password.value) {
+    errorMsg.value = 'Email and password are required.'
+    return
+  }
+  if (mode.value === 'signup' && password.value.length < 8) {
+    errorMsg.value = 'Password must be at least 8 characters.'
+    return
+  }
+
   submitting.value = true
-  setTimeout(() => {
-    router.push('/app/dashboard')
-  }, 600)
+  try {
+    if (mode.value === 'signin') {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.value,
+        password: password.value
+      })
+      if (error) throw error
+      await router.push('/app/dashboard')
+    } else {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.value,
+        password: password.value,
+        options: {
+          emailRedirectTo: `${window.location.origin}/confirm`,
+          data: {
+            full_name: name.value || null,
+            account_type: accountType.value
+          }
+        }
+      })
+      if (error) throw error
+
+      if (data.session) {
+        await router.push('/app/dashboard')
+      } else {
+        pendingConfirmationEmail.value = email.value
+      }
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+    errorMsg.value = message
+  } finally {
+    submitting.value = false
+  }
+}
+
+function resetConfirmationView() {
+  pendingConfirmationEmail.value = null
+  mode.value = 'signin'
+  password.value = ''
 }
 </script>
 
@@ -80,7 +142,22 @@ function handleSubmit() {
         </div>
       </div>
 
-      <div class="auth-card" :data-mode="mode">
+      <div v-if="pendingConfirmationEmail" class="auth-card" data-mode="confirm">
+        <span class="eyebrow">CHECK YOUR EMAIL</span>
+        <h1 class="title">Almost there<span class="title-dot">.</span></h1>
+        <p class="lead">
+          We sent a confirmation link to <strong>{{ pendingConfirmationEmail }}</strong>.
+          Click it to activate your account.
+        </p>
+        <button class="submit" type="button" @click="resetConfirmationView">
+          Back to sign in
+        </button>
+        <p class="terms">
+          Didn't get it? Check your spam folder or try signing up again with a different email.
+        </p>
+      </div>
+
+      <div v-else class="auth-card" :data-mode="mode">
         <span class="eyebrow">{{ copy.eyebrow }}</span>
 
         <h1 class="title">{{ copy.title }}<span class="title-dot">.</span></h1>
@@ -186,6 +263,8 @@ function handleSubmit() {
             </div>
             <p class="seg-hint">You can add the other later.</p>
           </div>
+
+          <p v-if="errorMsg" class="auth-error" role="alert">{{ errorMsg }}</p>
 
           <button class="submit" type="submit" :disabled="submitting">
             {{ submitting ? copy.submittingLabel : copy.submit }}
@@ -474,6 +553,17 @@ function handleSubmit() {
 }
 .forgot:hover {
   color: var(--ink);
+}
+
+.auth-error {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--accent-error, #E8B4B4);
+  color: var(--ink);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
 }
 
 .submit {

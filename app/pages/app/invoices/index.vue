@@ -2,20 +2,42 @@
 definePageMeta({ layout: 'app' })
 useHead({ title: 'scan-me — invoices' })
 
-const invoices = [
-  { id: '3471', merchant: 'Carrefour Express', date: '13 MAY', amt: '€ 42.18' },
-  { id: '3470', merchant: 'Endesa', date: '12 MAY', amt: '€ 87.50' },
-  { id: '3469', merchant: 'Claude', date: '11 MAY', amt: '€ 20.00' },
-  { id: '3468', merchant: 'Iberdrola', date: '11 MAY', amt: '€ 56.12' },
-  { id: '3467', merchant: 'Repsol', date: '10 MAY', amt: '€ 38.40' },
-  { id: '3466', merchant: 'Mercadona', date: '09 MAY', amt: '€ 64.30' },
-  { id: '3465', merchant: 'Lidl', date: '06 MAY', amt: '€ 38.40' },
-  { id: '3464', merchant: 'Notion', date: '05 MAY', amt: '€ 96.00' },
-  { id: '3463', merchant: 'Renfe', date: '03 MAY', amt: '€ 318.00' },
-  { id: '3462', merchant: 'La Tasca', date: '02 MAY', amt: '€ 56.00' },
-  { id: '3461', merchant: 'Carrefour', date: '02 MAY', amt: '€ 41.10' },
-  { id: '3460', merchant: 'Office Depot', date: '30 APR', amt: '€ 124.00' }
-]
+type InvoiceRow = {
+  id: string
+  vendor: string | null
+  invoice_date: string | null
+  currency: string | null
+  total: number | null
+  created_at: string
+}
+
+const supabase = useSupabaseClient()
+
+const { data, pending, error, refresh } = await useAsyncData('invoices-list', async () => {
+  const { data, error } = await supabase
+    .from('invoices')
+    .select('id, vendor, invoice_date, currency, total, created_at')
+    .order('created_at', { ascending: false })
+    .limit(120)
+  if (error) throw error
+  return (data ?? []) as InvoiceRow[]
+})
+
+function formatDate(iso: string | null, fallback: string): string {
+  const src = iso || fallback
+  const d = new Date(src)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d
+    .toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
+    .toUpperCase()
+}
+
+function formatAmount(n: number | null, currency: string | null): string {
+  if (n == null) return '—'
+  const symbol =
+    currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
+  return `${symbol} ${n.toFixed(2)}`.trim()
+}
 </script>
 
 <template>
@@ -23,26 +45,40 @@ const invoices = [
     <div class="topbar">
       <h1>Invoices</h1>
       <div class="actions">
-        <button class="btn-hifi btn-ghost btn-sm">Sort ▾</button>
+        <button class="btn-hifi btn-ghost btn-sm" @click="refresh()">Refresh</button>
         <NuxtLink to="/app/scan" class="btn-hifi btn-primary btn-sm">+ New scan</NuxtLink>
       </div>
     </div>
 
     <section class="route">
-      <div class="crumb mono">ALL · {{ invoices.length }} INVOICES</div>
+      <div class="crumb mono">
+        <template v-if="pending">LOADING…</template>
+        <template v-else-if="error">ERROR LOADING</template>
+        <template v-else>ALL · {{ data?.length ?? 0 }} INVOICES</template>
+      </div>
 
-      <div class="inv-cards">
+      <div v-if="error" class="state error">
+        Could not load invoices. Try refreshing.
+      </div>
+
+      <div v-else-if="!pending && (!data || data.length === 0)" class="state empty">
+        <div class="empty-title">No invoices yet</div>
+        <div class="empty-hint">Upload your first receipt to get started.</div>
+        <NuxtLink to="/app/scan" class="btn-hifi btn-primary btn-sm">+ New scan</NuxtLink>
+      </div>
+
+      <div v-else class="inv-cards">
         <NuxtLink
-          v-for="inv in invoices"
+          v-for="inv in data"
           :key="inv.id"
           :to="`/app/invoices/${inv.id}`"
           class="inv-card"
         >
           <div class="thumb" />
-          <div class="name">{{ inv.merchant }}</div>
+          <div class="name">{{ inv.vendor || 'Untitled' }}</div>
           <div class="row">
-            <span class="date">{{ inv.date }}</span>
-            <span class="amt">{{ inv.amt }}</span>
+            <span class="date">{{ formatDate(inv.invoice_date, inv.created_at) }}</span>
+            <span class="amt">{{ formatAmount(inv.total, inv.currency) }}</span>
           </div>
         </NuxtLink>
       </div>
@@ -77,6 +113,28 @@ const invoices = [
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-bottom: 16px;
+}
+
+.state {
+  padding: 48px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+.state.error { color: var(--ink-2); }
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.empty-hint {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-bottom: 12px;
 }
 
 .inv-cards {
