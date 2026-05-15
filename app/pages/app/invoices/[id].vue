@@ -2,168 +2,203 @@
 definePageMeta({ layout: 'app' })
 
 const route = useRoute()
-const invoiceId = computed(() => String(route.params.id))
+const invoiceId = computed(() => route.params.id as string)
 
-const invoice = {
-  client: 'Acme Co.',
-  email: 'billing@acme.co',
-  amount: 1240,
-  dueDate: '2026-06-01',
-  status: 'open',
-  items: [
-    { description: 'Scanner setup', quantity: 1, price: 800 },
-    { description: 'Training session', quantity: 2, price: 220 }
-  ]
-}
+useHead({ title: () => `scan-me — invoice #${invoiceId.value}` })
 
-function formatAmount(value: number) {
-  return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
-}
+const items = [
+  { name: 'Milk 1L', qty: 2, unit: '1.60', amount: '3.20' },
+  { name: 'Bread sourdough', qty: 1, unit: '2.40', amount: '2.40' },
+  { name: 'Olive oil 750ml', qty: 1, unit: '9.80', amount: '9.80' },
+  { name: 'Pasta penne', qty: 1, unit: '1.20', amount: '1.20' },
+  { name: 'Tomato sauce', qty: 1, unit: '2.10', amount: '2.10' }
+]
 </script>
 
 <template>
-  <section class="detail">
-    <header class="head">
+  <div>
+    <div class="topbar">
       <div>
-        <span class="muted">Invoice</span>
-        <h1>#{{ invoiceId }}</h1>
+        <div class="crumb mono">
+          <NuxtLink to="/app/invoices">Invoices</NuxtLink> › #{{ invoiceId }}
+        </div>
+        <h1>Carrefour Express</h1>
       </div>
       <div class="actions">
-        <NuxtLink to="/app/invoices" class="btn">Back</NuxtLink>
-        <button type="button" class="btn btn-primary">Send</button>
+        <button class="btn-hifi btn-ghost btn-sm">↓ PDF</button>
+        <button class="btn-hifi btn-ghost btn-sm">✎ Edit</button>
+        <button class="btn-hifi btn-icon" title="More">⋯</button>
       </div>
-    </header>
+    </div>
 
-    <article class="card summary">
-      <div class="row">
-        <span class="label">Client</span>
-        <span>{{ invoice.client }}</span>
-      </div>
-      <div class="row">
-        <span class="label">Email</span>
-        <span>{{ invoice.email }}</span>
-      </div>
-      <div class="row">
-        <span class="label">Due date</span>
-        <span>{{ invoice.dueDate }}</span>
-      </div>
-      <div class="row">
-        <span class="label">Status</span>
-        <span class="status" :data-status="invoice.status">{{ invoice.status }}</span>
-      </div>
-    </article>
+    <section class="route">
+      <div class="inv-hero">
+        <div class="inv-thumb">
+          <div class="recpaper">
+            <h5>CARREFOUR EXPRESS</h5>
+            <div class="addr">CALLE MAYOR 12 · MADRID</div>
+            <hr />
+            <div class="litem"><span>Milk 1L × 2</span><span>3.20</span></div>
+            <div class="litem"><span>Bread sourdough</span><span>2.40</span></div>
+            <div class="litem"><span>Olive oil 750ml</span><span>9.80</span></div>
+            <div class="litem"><span>Pasta penne</span><span>1.20</span></div>
+            <div class="litem"><span>Tomato sauce</span><span>2.10</span></div>
+            <hr />
+            <div class="tot"><span>TOTAL</span><span>€ 42.18</span></div>
+          </div>
+        </div>
 
-    <article class="card items">
-      <h3>Line items</h3>
-      <ul class="item-list">
-        <li v-for="item in invoice.items" :key="item.description" class="item">
-          <span class="item-desc">{{ item.description }}</span>
-          <span class="muted">× {{ item.quantity }}</span>
-          <span class="item-price">{{ formatAmount(item.price * item.quantity) }}</span>
-        </li>
-      </ul>
-      <footer class="total">
-        <span>Total</span>
-        <span>{{ formatAmount(invoice.amount) }}</span>
-      </footer>
-    </article>
-  </section>
+        <div class="inv-meta">
+          <span class="card-eyebrow">INVOICE · #{{ invoiceId }}</span>
+          <h2 class="merchant">Carrefour Express</h2>
+          <div class="bigamt">€ 42.18</div>
+          <div class="submeta">13 MAY 2026 · 18:42 · MADRID</div>
+          <div class="chips">
+            <NuxtLink to="/app/collections" class="chip">Hogar › Comida</NuxtLink>
+            <NuxtLink to="/app/people/maria" class="chip outline">
+              <span class="avatar sm">M</span> @maria
+            </NuxtLink>
+            <span class="chip outline">weekly</span>
+          </div>
+
+          <table class="inv-table">
+            <thead>
+              <tr><th>Item</th><th>Qty</th><th class="r">Unit</th><th class="r">Amount</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in items" :key="item.name">
+                <td>{{ item.name }}</td>
+                <td>{{ item.qty }}</td>
+                <td class="r">{{ item.unit }}</td>
+                <td class="r">{{ item.amount }}</td>
+              </tr>
+              <tr class="subtotal"><td colspan="3">Subtotal</td><td class="r">34.86</td></tr>
+              <tr class="subtotal"><td colspan="3">Tax 21%</td><td class="r">7.32</td></tr>
+              <tr class="total"><td colspan="3">Total</td><td class="r">€ 42.18</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
 </template>
 
 <style scoped>
-.detail {
+.topbar {
+  padding: 20px 36px;
+  border-bottom: 1px solid var(--line);
   display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 720px;
-}
-
-.head {
-  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 16px;
+  gap: 24px;
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  z-index: 5;
 }
-
-.head .muted {
-  display: block;
-  font-size: var(--font-caption);
-  color: var(--fg-muted);
+.topbar h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.025em; }
+.crumb {
+  font-size: 13px;
+  color: var(--ink-3);
+  letter-spacing: -0.005em;
   margin-bottom: 4px;
 }
+.crumb a { color: var(--ink-3); transition: color 0.15s; }
+.crumb a:hover { color: var(--ink); }
+.actions { display: flex; gap: 8px; }
 
-.actions {
+.route { padding: 36px; }
+
+.inv-hero {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (max-width: 1000px) { .inv-hero { grid-template-columns: 1fr; } }
+
+.inv-thumb {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  aspect-ratio: 1 / 1.05;
   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inv-thumb .recpaper {
+  width: 78%;
+  aspect-ratio: 4 / 5.2;
+  transform: rotate(-1deg);
+  padding: 20px 18px;
+}
+
+.inv-meta {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
-
-.summary {
-  display: flex;
-  flex-direction: column;
+.card-eyebrow {
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
+.merchant {
+  margin: 6px 0 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.bigamt {
+  font-size: clamp(48px, 6vw, 72px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-top: 12px;
+}
+.submeta {
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.05em;
+}
+.chips { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 
-.row {
-  display: flex;
-  justify-content: space-between;
+.inv-table {
+  margin-top: 24px;
+  width: 100%;
+  border-collapse: collapse;
+}
+.inv-table th,
+.inv-table td {
+  text-align: left;
   padding: 12px 0;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
 }
-
-.row:last-child { border-bottom: none; }
-
-.label {
-  color: var(--fg-muted);
-}
-
-.status {
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-caption);
-  text-transform: capitalize;
-  border: 1px solid var(--border-subtle);
-}
-
-.status[data-status='paid'] { background: var(--accent-success); }
-.status[data-status='open'] { background: var(--accent-info); }
-.status[data-status='overdue'] { background: var(--accent-error); }
-
-.items {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.item-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.item {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 16px;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.item-desc {
+.inv-table th {
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   font-weight: 500;
 }
-
-.item-price {
-  font-variant-numeric: tabular-nums;
+.inv-table td.r {
+  text-align: right;
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-weight: 500;
 }
-
-.total {
-  display: flex;
-  justify-content: space-between;
-  padding-top: 12px;
-  font-weight: 600;
-  font-size: var(--font-h3);
+.inv-table th.r { text-align: right; }
+.inv-table tr.total td {
+  border-bottom: none;
+  padding-top: 16px;
+  font-weight: 700;
+  font-size: 15px;
 }
+.inv-table tr.subtotal td { color: var(--ink-2); }
 </style>
