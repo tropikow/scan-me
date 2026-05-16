@@ -91,6 +91,11 @@ function fmt(n: number | null, currency: string | null): string {
 function fmtPlain(n: number | null): string {
   return n == null ? '—' : n.toFixed(2)
 }
+
+function downloadPdf() {
+  if (typeof window === 'undefined') return
+  window.print()
+}
 </script>
 
 <template>
@@ -105,7 +110,11 @@ function fmtPlain(n: number | null): string {
         <h1>{{ data?.invoice?.vendor || (pending ? 'Loading…' : 'Not found') }}</h1>
       </div>
       <div class="actions">
-        <button class="btn-hifi btn-ghost btn-sm" disabled>↓ PDF</button>
+        <button
+          class="btn-hifi btn-ghost btn-sm"
+          :disabled="pending || !data?.invoice"
+          @click="downloadPdf"
+        >↓ PDF</button>
         <button class="btn-hifi btn-ghost btn-sm" disabled>✎ Edit</button>
       </div>
     </div>
@@ -118,14 +127,37 @@ function fmtPlain(n: number | null): string {
       </div>
 
       <div v-else class="inv-hero">
-        <div class="inv-thumb">
-          <img
-            v-if="data.signedUrl"
-            :src="data.signedUrl"
-            alt="Receipt scan"
-            class="inv-img"
+        <div class="inv-left">
+          <DigitalInvoice
+            :invoice-id="data.invoice.id"
+            :vendor="data.invoice.vendor"
+            :vendor-address="data.invoice.vendor_address"
+            :invoice-number="data.invoice.invoice_number"
+            :invoice-date="data.invoice.invoice_date"
+            :created-at="data.invoice.created_at"
+            :currency="data.invoice.currency"
+            :subtotal="data.invoice.subtotal"
+            :tax="data.invoice.tax"
+            :tax-rate="data.invoice.tax_rate"
+            :total="data.invoice.total"
+            :items="data.items"
           />
-          <div v-else class="inv-thumb-empty">No image available</div>
+
+          <div class="inv-original">
+            <div class="inv-original-head">
+              <span class="card-eyebrow">Original file</span>
+              <span class="inv-original-hint mono">As uploaded</span>
+            </div>
+            <div class="inv-original-body">
+              <img
+                v-if="data.signedUrl"
+                :src="data.signedUrl"
+                alt="Original receipt scan"
+                class="inv-img"
+              />
+              <div v-else class="inv-thumb-empty">No image available</div>
+            </div>
+          </div>
         </div>
 
         <div class="inv-meta">
@@ -225,11 +257,38 @@ function fmtPlain(n: number | null): string {
 }
 @media (max-width: 1000px) { .inv-hero { grid-template-columns: 1fr; } }
 
-.inv-thumb {
+.inv-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.inv-original {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 24px;
-  aspect-ratio: 1 / 1.05;
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.inv-original-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.inv-original-hint {
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.06em;
+}
+.inv-original-body {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -237,9 +296,9 @@ function fmtPlain(n: number | null): string {
 }
 .inv-img {
   max-width: 100%;
-  max-height: 100%;
+  max-height: 460px;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 6px;
   box-shadow: 0 6px 24px rgba(0,0,0,0.08);
 }
 .inv-thumb-empty {
@@ -316,5 +375,58 @@ function fmtPlain(n: number | null): string {
   padding-top: 16px;
   font-weight: 700;
   font-size: 15px;
+}
+</style>
+
+<style>
+@media print {
+  @page {
+    margin: 12mm;
+    size: A4;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sidebar,
+  .topbar,
+  .inv-original,
+  .inv-meta {
+    display: none !important;
+  }
+
+  .shell {
+    display: block !important;
+  }
+
+  .main {
+    display: block !important;
+  }
+
+  .route {
+    padding: 0 !important;
+  }
+
+  .inv-hero {
+    display: block !important;
+    margin: 0 !important;
+    gap: 0 !important;
+  }
+
+  .inv-left {
+    display: block !important;
+    gap: 0 !important;
+  }
+
+  .dinv {
+    border: 1px solid #e6e2dc !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }
 </style>
