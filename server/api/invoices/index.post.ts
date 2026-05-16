@@ -1,5 +1,10 @@
 import { randomUUID } from 'node:crypto'
-import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
+import { createClient } from '@supabase/supabase-js'
+import {
+  serverSupabaseClient,
+  serverSupabaseSession,
+  serverSupabaseUser
+} from '#supabase/server'
 
 const MAX_BYTES = 10 * 1024 * 1024
 
@@ -76,8 +81,9 @@ function toTags(v: unknown): string[] {
 }
 
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event)
-  if (!user) {
+  const claims = await serverSupabaseUser(event)
+  const userId = (claims as { sub?: string } | null)?.sub
+  if (!userId) {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
   }
 
@@ -110,21 +116,41 @@ export default defineEventHandler(async (event) => {
   }
 
   const supabase = await serverSupabaseClient(event)
-  const invoiceId = randomUUID()
-  const objectPath = `${user.id}/${invoiceId}.${MIME_TO_EXT[mime]}`
+  const session = await serverSupabaseSession(event)
+  if (!session?.access_token) {
+    throw createError({ statusCode: 401, statusMessage: 'Missing session' })
+  }
 
-  const { error: uploadErr } = await supabase.storage
+  const runtimeConfig = useRuntimeConfig(event)
+  const supabasePublic = (runtimeConfig.public as { supabase: { url: string; key: string } }).supabase
+
+  // Storage REST requires the user's JWT in the Authorization header for RLS to
+  // evaluate auth.uid() correctly. We build a dedicated client that pins the token,
+  // because the SSR-cookie-based client doesn't always forward it to storage calls.
+  const storageClient = createClient(supabasePublic.url, supabasePublic.key, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { headers: { Authorization: `Bearer ${session.access_token}` } }
+  })
+
+  const invoiceId = randomUUID()
+  const objectPath = `${userId}/${invoiceId}.${MIME_TO_EXT[mime]}`
+
+  const { error: uploadErr } = await storageClient.storage
     .from('receipts')
     .upload(objectPath, filePart.data, { contentType: mime, upsert: false })
 
   if (uploadErr) {
-    console.error('[invoices] storage upload failed', uploadErr.message)
+    console.error('[invoices] storage upload failed', {
+      err: uploadErr.message,
+      userId: userId,
+      path: objectPath
+    })
     throw createError({ statusCode: 502, statusMessage: 'Failed to store image' })
   }
 
   const invoiceRow = {
     id: invoiceId,
-    user_id: user.id,
+    user_id: userId,
     vendor: toStr(payload.vendor, 200),
     vendor_address: toStr(payload.vendor_address, 500),
     invoice_number: toStr(payload.invoice_number, 80),
@@ -142,7 +168,7 @@ export default defineEventHandler(async (event) => {
 
   const { error: insertErr } = await supabase.from('invoices').insert(invoiceRow)
   if (insertErr) {
-    await supabase.storage.from('receipts').remove([objectPath])
+    await storageClient.storage.from('receipts').remove([objectPath])
     console.error('[invoices] insert failed', insertErr.message)
     throw createError({ statusCode: 500, statusMessage: 'Failed to save invoice' })
   }
