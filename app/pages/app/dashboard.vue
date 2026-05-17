@@ -16,6 +16,61 @@ function startOfWeekISO(): string {
   return monday.toISOString()
 }
 
+const _now = new Date()
+const curMonthStart = new Date(_now.getFullYear(), _now.getMonth(), 1).toISOString()
+const nextMonthStart = new Date(_now.getFullYear(), _now.getMonth() + 1, 1).toISOString()
+const prevMonthStart = new Date(_now.getFullYear(), _now.getMonth() - 1, 1).toISOString()
+const prevMonthLabel = new Date(_now.getFullYear(), _now.getMonth() - 1, 1)
+  .toLocaleDateString('en-US', { month: 'long' })
+  .toUpperCase()
+
+const { data: monthSpend } = await useAsyncData(
+  'dashboard-month-spend',
+  async () => {
+    if (!user.value) return { current: 0, previous: 0 }
+    const [curRes, prevRes] = await Promise.all([
+      supabase
+        .from('invoices')
+        .select('total')
+        .gte('created_at', curMonthStart)
+        .lt('created_at', nextMonthStart),
+      supabase
+        .from('invoices')
+        .select('total')
+        .gte('created_at', prevMonthStart)
+        .lt('created_at', curMonthStart),
+    ])
+    const sum = (rows: { total: number | null }[] | null | undefined) =>
+      (rows ?? []).reduce((acc, r) => acc + (r.total ?? 0), 0)
+    return {
+      current: curRes.error ? 0 : sum(curRes.data),
+      previous: prevRes.error ? 0 : sum(prevRes.data),
+    }
+  },
+  { default: () => ({ current: 0, previous: 0 }), watch: [user] },
+)
+
+const monthSpendDisplay = computed(() => {
+  const cur = monthSpend.value?.current ?? 0
+  const prev = monthSpend.value?.previous ?? 0
+  const fmt = (n: number) =>
+    n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+  let delta = '—'
+  if (prev > 0) {
+    const pct = Math.round(((cur - prev) / prev) * 100)
+    const arrow = pct >= 0 ? '↑' : '↓'
+    delta = `${arrow} ${Math.abs(pct)}%`
+  } else if (cur > 0) {
+    delta = 'NEW'
+  }
+  return {
+    amount: fmt(cur),
+    prevAmount: fmt(prev),
+    prevLabel: prevMonthLabel,
+    delta,
+  }
+})
+
 const { data: invoiceStats } = await useAsyncData(
   'dashboard-invoice-stats',
   async () => {
@@ -50,13 +105,63 @@ const kpis = computed(() => [
   { lbl: 'AVG / INVOICE', value: '€ 27', sub: '↓ €4 vs Apr' },
 ])
 
-const recent = [
-  { id: '3471', code: 'CA', name: 'Carrefour Express', meta: '13 MAY · HOGAR › COMIDA', amt: '€ 42.18' },
-  { id: '3470', code: 'EN', name: 'Endesa', meta: '12 MAY · HOGAR › LUZ', amt: '€ 87.50' },
-  { id: '3469', code: 'CL', name: 'Claude', meta: '11 MAY · TOOLS › AI', amt: '€ 20.00' },
-  { id: '3468', code: 'IB', name: 'Iberdrola', meta: '11 MAY · HOGAR › LUZ', amt: '€ 56.12' },
-  { id: '3467', code: 'RE', name: 'Repsol', meta: '10 MAY · TRANSPORT', amt: '€ 38.40' }
-]
+type RecentInvoice = {
+  id: string
+  vendor: string | null
+  invoice_date: string | null
+  currency: string | null
+  total: number | null
+  created_at: string
+}
+
+const { data: recentRows } = await useAsyncData(
+  'dashboard-recent-invoices',
+  async () => {
+    if (!user.value) return [] as RecentInvoice[]
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('id, vendor, invoice_date, currency, total, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5)
+    if (error) return [] as RecentInvoice[]
+    return (data ?? []) as RecentInvoice[]
+  },
+  { default: () => [] as RecentInvoice[], watch: [user] },
+)
+
+function initialsFor(vendor: string | null): string {
+  if (!vendor) return '··'
+  const parts = vendor.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '··'
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
+  return (parts[0]![0]! + parts[1]![0]!).toUpperCase()
+}
+
+function formatMetaDate(iso: string | null, fallback: string): string {
+  const src = iso || fallback
+  const d = new Date(src)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d
+    .toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
+    .toUpperCase()
+}
+
+function formatAmount(n: number | null, currency: string | null): string {
+  if (n == null) return '—'
+  const symbol =
+    currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
+  return `${symbol} ${n.toFixed(2)}`.trim()
+}
+
+const recent = computed(() =>
+  (recentRows.value ?? []).map((row) => ({
+    id: row.id,
+    code: initialsFor(row.vendor),
+    name: row.vendor || 'Unknown vendor',
+    meta: `${formatMetaDate(row.invoice_date, row.created_at)} · ${row.currency || '—'}`,
+    amt: formatAmount(row.total, row.currency),
+  })),
+)
 </script>
 
 <template>
@@ -75,10 +180,10 @@ const recent = [
           <span class="card-eyebrow">SPENT THIS MONTH</span>
           <div class="hero-amount">
             <div>
-              <div class="num">€ 1,284</div>
-              <div class="hero-meta">VS € 1,189 IN APRIL</div>
+              <div class="num">€ {{ monthSpendDisplay.amount }}</div>
+              <div class="hero-meta">VS € {{ monthSpendDisplay.prevAmount }} IN {{ monthSpendDisplay.prevLabel }}</div>
             </div>
-            <span class="delta">↑ 8%</span>
+            <span class="delta">{{ monthSpendDisplay.delta }}</span>
           </div>
           <svg class="spark" viewBox="0 0 400 80" preserveAspectRatio="none">
             <path d="M 0 60 L 25 50 L 50 55 L 75 42 L 100 48 L 125 38 L 150 44 L 175 30 L 200 36 L 225 24 L 250 28 L 275 18 L 300 22 L 325 14 L 350 18 L 400 6" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -135,6 +240,9 @@ const recent = [
               </div>
               <div class="amt">{{ row.amt }}</div>
             </NuxtLink>
+            <div v-if="recent.length === 0" class="list-empty">
+              No invoices yet. <NuxtLink to="/app/scan">Scan your first receipt →</NuxtLink>
+            </div>
           </div>
         </div>
       </div>
@@ -358,6 +466,12 @@ const recent = [
   font-weight: 600;
   font-size: 14px;
 }
+.list-empty {
+  padding: 16px 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.list-empty a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 /* drop zone */
 .drop-zone {
