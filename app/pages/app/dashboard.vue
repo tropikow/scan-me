@@ -2,15 +2,53 @@
 definePageMeta({ layout: 'app' })
 useHead({ title: 'scan-me — dashboard' })
 
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+
 const dashData = [42, 28, 68, 38, 90, 72, 118, 86, 52, 104, 124, 92, 110, 76, 98, 86, 132, 108, 72, 94, 48, 68, 114, 82, 124, 60, 88, 116, 72, 104]
 const dashMax = Math.max(...dashData)
 
-const kpis = [
-  { lbl: 'INVOICES', value: '47', sub: '+ 12 this week' },
+function startOfWeekISO(): string {
+  const now = new Date()
+  const day = now.getDay()
+  const diff = (day + 6) % 7
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff)
+  return monday.toISOString()
+}
+
+const { data: invoiceStats } = await useAsyncData(
+  'dashboard-invoice-stats',
+  async () => {
+    if (!user.value) return { total: 0, thisWeek: 0 }
+    const weekStart = startOfWeekISO()
+    const [totalRes, weekRes] = await Promise.all([
+      supabase.from('invoices').select('id', { count: 'exact', head: true }),
+      supabase
+        .from('invoices')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', weekStart),
+    ])
+    return {
+      total: totalRes.error ? 0 : totalRes.count ?? 0,
+      thisWeek: weekRes.error ? 0 : weekRes.count ?? 0,
+    }
+  },
+  { default: () => ({ total: 0, thisWeek: 0 }), watch: [user] },
+)
+
+const kpis = computed(() => [
+  {
+    lbl: 'INVOICES',
+    value: String(invoiceStats.value?.total ?? 0),
+    sub:
+      (invoiceStats.value?.thisWeek ?? 0) > 0
+        ? `+ ${invoiceStats.value?.thisWeek} this week`
+        : 'No new this week',
+  },
   { lbl: 'PEOPLE', value: '7', sub: '4 active' },
   { lbl: 'TOP CATEGORY', value: 'Hogar', valueSmall: true, sub: '€ 514 · 40%' },
-  { lbl: 'AVG / INVOICE', value: '€ 27', sub: '↓ €4 vs Apr' }
-]
+  { lbl: 'AVG / INVOICE', value: '€ 27', sub: '↓ €4 vs Apr' },
+])
 
 const recent = [
   { id: '3471', code: 'CA', name: 'Carrefour Express', meta: '13 MAY · HOGAR › COMIDA', amt: '€ 42.18' },

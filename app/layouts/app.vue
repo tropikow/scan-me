@@ -19,6 +19,19 @@ const planLabel = computed(() => {
   return `${type} · FREE`
 })
 
+const { data: invoiceCount, refresh: refreshInvoiceCount } = await useAsyncData(
+  'sidebar-invoice-count',
+  async () => {
+    if (!user.value) return 0
+    const { count, error } = await supabase
+      .from('invoices')
+      .select('id', { count: 'exact', head: true })
+    if (error) return 0
+    return count ?? 0
+  },
+  { default: () => 0, watch: [user] },
+)
+
 async function signOut() {
   await supabase.auth.signOut()
   await router.push('/signin')
@@ -58,7 +71,7 @@ async function signOut() {
         <NuxtLink to="/app/invoices" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M14 3v5h5"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
           Invoices
-          <span class="count">47</span>
+          <span v-if="invoiceCount" class="count">{{ invoiceCount }}</span>
         </NuxtLink>
         <NuxtLink to="/app/collections" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a1 1 0 0 1 1-1h4l2 2h10a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
