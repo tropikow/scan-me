@@ -66,45 +66,8 @@ const steps = [
 
             <div class="app">
               <div class="app-bar">
-                <span class="back">← New scan</span>
-                <span class="step-indicator mono">2 / 3</span>
-              </div>
-
-              <div class="receipt-card">
-                <svg class="receipt-svg" viewBox="0 0 240 180" preserveAspectRatio="xMidYMid slice">
-                  <defs>
-                    <linearGradient id="paperG" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#fdfbf6" />
-                      <stop offset="100%" stop-color="#efece2" />
-                    </linearGradient>
-                    <pattern id="grain" width="60" height="60" patternUnits="userSpaceOnUse">
-                      <rect width="60" height="60" fill="transparent" />
-                      <circle cx="10" cy="14" r="0.3" fill="rgba(0,0,0,0.06)" />
-                      <circle cx="32" cy="44" r="0.4" fill="rgba(0,0,0,0.05)" />
-                      <circle cx="48" cy="22" r="0.3" fill="rgba(0,0,0,0.06)" />
-                      <circle cx="22" cy="55" r="0.3" fill="rgba(0,0,0,0.04)" />
-                    </pattern>
-                  </defs>
-                  <path d="M 14 8 L 226 6 L 230 174 L 12 170 Z" fill="url(#paperG)" stroke="rgba(0,0,0,0.06)" stroke-width="0.6" />
-                  <rect width="240" height="180" fill="url(#grain)" opacity="0.6" />
-                  <text x="120" y="34" text-anchor="middle" font-family="Geist Mono, monospace" font-size="13" font-weight="600" fill="#1a1a1a" letter-spacing="0.6">CARREFOUR</text>
-                  <text x="120" y="48" text-anchor="middle" font-family="Geist Mono, monospace" font-size="8" fill="#888" letter-spacing="0.5">CALLE MAYOR 12 · MADRID</text>
-                  <line x1="22" y1="58" x2="218" y2="58" stroke="rgba(0,0,0,0.18)" stroke-width="0.6" stroke-dasharray="2 2" />
-                  <g font-family="Geist Mono, monospace" font-size="9" fill="#2a2a2a">
-                    <text x="22" y="76">Milk 1L x 2</text><text x="218" y="76" text-anchor="end">3.20</text>
-                    <text x="22" y="90">Bread sourdough</text><text x="218" y="90" text-anchor="end">2.40</text>
-                    <text x="22" y="104">Olive oil 750ml</text><text x="218" y="104" text-anchor="end">9.80</text>
-                    <text x="22" y="118">Pasta penne</text><text x="218" y="118" text-anchor="end">1.20</text>
-                    <text x="22" y="132">Tomato sauce</text><text x="218" y="132" text-anchor="end">2.10</text>
-                  </g>
-                  <line x1="22" y1="142" x2="218" y2="142" stroke="rgba(0,0,0,0.18)" stroke-width="0.6" stroke-dasharray="2 2" />
-                  <g font-family="Geist Mono, monospace" font-size="10" fill="#0a0a0a" font-weight="600">
-                    <text x="22" y="158">TOTAL</text>
-                    <text x="218" y="158" text-anchor="end">€ 42.18</text>
-                  </g>
-                  <text x="120" y="172" text-anchor="middle" font-family="Geist Mono, monospace" font-size="7" fill="#888" letter-spacing="0.6">— GRACIAS —</text>
-                </svg>
-                <div class="receipt-scan-line" />
+                <span class="back">← Preview</span>
+                <span class="step-indicator mono">3 / 3</span>
               </div>
 
               <div class="extracted">
@@ -112,24 +75,92 @@ const steps = [
                 <span>EXTRACTED · 98% CONFIDENCE</span>
               </div>
 
-              <div class="field-list">
-                <div class="field f1">
-                  <span class="field-label">Merchant</span>
-                  <span class="field-value">Carrefour Express</span>
-                </div>
-                <div class="field f2">
-                  <span class="field-label">Date</span>
-                  <span class="field-value">13 May 2026</span>
-                </div>
-                <div class="field f3">
-                  <span class="field-label">Collection</span>
-                  <span class="field-value">Hogar › Comida</span>
-                </div>
-                <div class="field total">
-                  <span class="field-label">Total</span>
-                  <span class="field-value">€ 42.18</span>
-                </div>
-              </div>
+              <article class="dinv-mini" aria-label="Digital invoice preview">
+                <header class="dinv-mini-head">
+                  <div class="dinv-mini-brand">
+                    <span class="dinv-mini-logo" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4">
+                        <rect x="2.5" y="2.5" width="11" height="11" rx="2" />
+                        <path d="M5 8 L7 10 L11 6" />
+                      </svg>
+                    </span>
+                    <span class="dinv-mini-brand-name">scan-me</span>
+                  </div>
+                  <div class="dinv-mini-stamp">
+                    <span class="dinv-mini-stamp-label mono">Invoice</span>
+                    <span class="dinv-mini-stamp-id mono">#A1B2C3D4</span>
+                  </div>
+                </header>
+
+                <div class="dinv-mini-divider" />
+
+                <section class="dinv-mini-meta">
+                  <div class="dinv-mini-meta-block">
+                    <span class="dinv-mini-key mono">Issued by</span>
+                    <span class="dinv-mini-val">Carrefour Express</span>
+                    <span class="dinv-mini-sub">Calle Mayor 12, Madrid</span>
+                  </div>
+                  <div class="dinv-mini-meta-block r">
+                    <span class="dinv-mini-key mono">Date</span>
+                    <span class="dinv-mini-val">13 MAY 2026</span>
+                    <span class="dinv-mini-sub mono">№ 0481-22</span>
+                  </div>
+                </section>
+
+                <div class="dinv-mini-divider dashed" />
+
+                <section class="dinv-mini-items">
+                  <div class="dinv-mini-row dinv-mini-row-head mono">
+                    <span>Description</span>
+                    <span>Qty</span>
+                    <span>Amount</span>
+                  </div>
+                  <div class="dinv-mini-row">
+                    <span class="d-desc">Milk 1L</span>
+                    <span class="mono d-qty">2</span>
+                    <span class="mono d-amt">3.20</span>
+                  </div>
+                  <div class="dinv-mini-row">
+                    <span class="d-desc">Olive oil 750ml</span>
+                    <span class="mono d-qty">1</span>
+                    <span class="mono d-amt">9.80</span>
+                  </div>
+                  <div class="dinv-mini-row">
+                    <span class="d-desc">Pasta penne</span>
+                    <span class="mono d-qty">1</span>
+                    <span class="mono d-amt">1.20</span>
+                  </div>
+                  <div class="dinv-mini-row">
+                    <span class="d-desc">Tomato sauce</span>
+                    <span class="mono d-qty">1</span>
+                    <span class="mono d-amt">2.10</span>
+                  </div>
+                </section>
+
+                <div class="dinv-mini-divider dashed" />
+
+                <section class="dinv-mini-totals">
+                  <div class="dinv-mini-trow">
+                    <span class="dinv-mini-key mono">Subtotal</span>
+                    <span class="dinv-mini-val mono">34.86</span>
+                  </div>
+                  <div class="dinv-mini-trow">
+                    <span class="dinv-mini-key mono">Tax · 21%</span>
+                    <span class="dinv-mini-val mono">7.32</span>
+                  </div>
+                  <div class="dinv-mini-trow grand">
+                    <span class="dinv-mini-key mono">Total</span>
+                    <span class="dinv-mini-val">€ 42.18</span>
+                  </div>
+                </section>
+
+                <footer class="dinv-mini-foot mono">
+                  <span>Generated by scan-me</span>
+                  <span>5 items</span>
+                </footer>
+
+                <div class="dinv-mini-scan" />
+              </article>
 
               <button type="button" class="save-btn">Save invoice</button>
             </div>
@@ -476,118 +507,258 @@ h1.hero-title .dot {
   letter-spacing: 0.05em;
 }
 
-.receipt-card {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #f6f4ef;
-  box-shadow: 0 8px 22px -8px rgba(0, 0, 0, 0.18), 0 0 0 1px var(--line-2);
-  transform: rotate(-1.2deg);
-  margin: 6px 4px 16px;
-  opacity: 0;
-  animation: rise 0.7s 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
-}
-.receipt-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-.receipt-scan-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 18px;
-  background: linear-gradient(180deg, transparent 0%, rgba(10, 10, 10, 0.10) 50%, transparent 100%);
-  animation: scan 2.2s 1.2s cubic-bezier(0.5, 0.05, 0.5, 0.95) 1 forwards;
-  pointer-events: none;
-  top: -20px;
-}
-@keyframes scan {
-  0%   { top: -20px; opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
-
 .extracted {
   display: flex;
   align-items: center;
   gap: 8px;
   font-family: 'Geist Mono', monospace;
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--ink-3);
   letter-spacing: 0.08em;
-  margin-bottom: 12px;
+  margin: 4px 0 10px;
   opacity: 0;
-  animation: rise 0.6s 2.2s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation: rise 0.6s 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
 }
 .extracted .check {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--ink);
   color: var(--accent-ink);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
 }
 
-.field-list {
+/* === Digital invoice (mini, mirrors DigitalInvoice.vue) === */
+.dinv-mini {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  padding: 14px 14px 10px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  color: var(--ink);
+  overflow: hidden;
+  box-shadow: 0 8px 22px -10px rgba(0, 0, 0, 0.14);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: rise 0.7s 1.3s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
 }
-.field {
+.dinv-mini::before,
+.dinv-mini::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 0;
+  border-top: 1px dashed var(--line-2);
+  pointer-events: none;
+}
+.dinv-mini::before { top: 0; }
+.dinv-mini::after { bottom: 0; }
+
+.dinv-mini-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dinv-mini-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dinv-mini-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+}
+.dinv-mini-brand-name {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-size: 11px;
+}
+.dinv-mini-stamp {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+.dinv-mini-stamp-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 7.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.dinv-mini-stamp-id {
+  margin-top: 2px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+}
+
+.dinv-mini-divider {
+  height: 0;
+  border-top: 1px solid var(--line-2);
+}
+.dinv-mini-divider.dashed {
+  border-top-style: dashed;
+}
+
+.dinv-mini-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.dinv-mini-meta-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.dinv-mini-meta-block.r {
+  align-items: flex-end;
+  text-align: right;
+}
+.dinv-mini-key {
+  font-family: 'Geist Mono', monospace;
+  font-size: 7.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.dinv-mini-val {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.dinv-mini-sub {
+  font-size: 8.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+
+.dinv-mini-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dinv-mini-row {
+  display: grid;
+  grid-template-columns: 1.6fr 0.4fr 0.7fr;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 10px;
+  padding: 4px 0;
+  border-bottom: 1px dotted var(--line-2);
+}
+.dinv-mini-row:last-child { border-bottom: none; }
+.dinv-mini-row-head {
+  font-size: 7.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--line-2);
+}
+.dinv-mini-row .d-qty,
+.dinv-mini-row .d-amt,
+.dinv-mini-row-head span:nth-child(2),
+.dinv-mini-row-head span:nth-child(3) {
+  text-align: right;
+}
+.dinv-mini-row .d-desc {
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dinv-mini-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.dinv-mini-trow {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--line-2);
-  opacity: 0;
-  transform: translateY(8px);
-}
-.field.f1 { animation: rise 0.5s 2.4s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
-.field.f2 { animation: rise 0.5s 2.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
-.field.f3 { animation: rise 0.5s 3.0s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
-.field.total {
-  border-bottom: none;
-  padding-top: 14px;
-  animation: rise 0.5s 3.3s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
-}
-.field-label {
-  font-family: 'Geist Mono', monospace;
   font-size: 10px;
-  color: var(--ink-3);
-  letter-spacing: 0.05em;
+}
+.dinv-mini-trow .dinv-mini-key {
+  text-transform: none;
+  letter-spacing: 0.04em;
+  font-size: 8.5px;
+}
+.dinv-mini-trow.grand {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line-2);
+}
+.dinv-mini-trow.grand .dinv-mini-key {
+  font-size: 9px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--ink);
 }
-.field-value {
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
-.field.total .field-label { font-size: 11px; }
-.field.total .field-value {
-  font-size: 22px;
+.dinv-mini-trow.grand .dinv-mini-val {
+  font-family: 'Geist', sans-serif;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
+}
+
+.dinv-mini-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 7.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-top: 2px;
+}
+
+.dinv-mini-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 22px;
+  background: linear-gradient(180deg, transparent 0%, rgba(10, 10, 10, 0.12) 50%, transparent 100%);
+  animation: scan 2.4s 1.4s cubic-bezier(0.5, 0.05, 0.5, 0.95) 1 forwards;
+  pointer-events: none;
+  top: -22px;
+  z-index: 1;
+}
+@keyframes scan {
+  0%   { top: -22px; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
 }
 
 .save-btn {
-  margin-top: auto;
+  margin-top: 14px;
   background: var(--ink);
   color: var(--accent-ink);
   border: none;
-  padding: 13px;
+  padding: 12px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.005em;
   border-radius: 12px;
   opacity: 0;
-  animation: rise 0.5s 3.5s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation: rise 0.5s 2.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
 }
 
 .phone-glow {
