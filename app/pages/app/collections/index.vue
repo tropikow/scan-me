@@ -2,35 +2,242 @@
 definePageMeta({ layout: 'app' })
 useHead({ title: 'scan-me — collections' })
 
-interface TreeNode {
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+
+type CollectionRow = {
   id: string
-  label: string
-  count: number
-  indent?: boolean
-  open?: boolean
+  parent_id: string | null
+  name: string
+  slug: string
+  position: number
 }
 
-const tree: TreeNode[] = [
-  { id: 'hogar', label: 'Hogar', count: 14, open: true },
-  { id: 'hogar-luz', label: 'Luz', count: 5, indent: true },
-  { id: 'hogar-comida', label: 'Comida', count: 6, indent: true },
-  { id: 'hogar-internet', label: 'Internet', count: 3, indent: true },
-  { id: 'herramientas', label: 'Herramientas', count: 8, open: true },
-  { id: 'herramientas-software', label: 'Software › Claude', count: 5, indent: true },
-  { id: 'herramientas-hardware', label: 'Hardware', count: 3, indent: true },
-  { id: 'transporte', label: 'Transporte', count: 4 },
-  { id: 'comida-fuera', label: 'Comida fuera', count: 6 }
-]
-const active = ref('hogar-comida')
+type CollectionStat = {
+  collection_id: string
+  invoice_count: number
+  total_amount: number | string
+}
 
-const items = [
-  { id: '3471', name: 'Carrefour', date: '13 MAY', amt: '€ 42.18' },
-  { id: '3466', name: 'Mercadona', date: '09 MAY', amt: '€ 64.30' },
-  { id: '3465', name: 'Lidl', date: '06 MAY', amt: '€ 38.40' },
-  { id: '3461', name: 'Carrefour', date: '02 MAY', amt: '€ 41.10' },
-  { id: '3459', name: 'Mercadona', date: '30 APR', amt: '€ 28.20' },
-  { id: '3458', name: 'Local mkt', date: '28 APR', amt: '€ 18.80' }
-]
+type InvoiceCardRow = {
+  id: string
+  vendor: string | null
+  invoice_date: string | null
+  created_at: string
+  total: number | null
+  currency: string | null
+}
+
+const active = ref<string | null>(null)
+const expanded = ref<Set<string>>(new Set())
+
+const { data: collections, refresh: refreshCollections } = await useAsyncData(
+  'collections-list',
+  async () => {
+    if (!user.value) return [] as CollectionRow[]
+    const { data, error } = await supabase
+      .from('collections')
+      .select('id, parent_id, name, slug, position')
+      .order('position', { ascending: true })
+      .order('name', { ascending: true })
+    if (error) return [] as CollectionRow[]
+    return (data ?? []) as CollectionRow[]
+  },
+  { default: () => [] as CollectionRow[], watch: [user] },
+)
+
+const { data: stats, refresh: refreshStats } = await useAsyncData(
+  'collections-stats',
+  async () => {
+    if (!user.value) return [] as CollectionStat[]
+    const { data, error } = await supabase
+      .from('v_collection_stats')
+      .select('collection_id, invoice_count, total_amount')
+    if (error) return [] as CollectionStat[]
+    return (data ?? []) as CollectionStat[]
+  },
+  { default: () => [] as CollectionStat[], watch: [user] },
+)
+
+const statsMap = computed(() => {
+  const map = new Map<string, { count: number; total: number }>()
+  for (const s of stats.value ?? []) {
+    map.set(s.collection_id, {
+      count: Number(s.invoice_count) || 0,
+      total: Number(s.total_amount) || 0,
+    })
+  }
+  return map
+})
+
+const childrenByParent = computed(() => {
+  const map = new Map<string | null, CollectionRow[]>()
+  for (const row of collections.value ?? []) {
+    const key = row.parent_id
+    if (!map.has(key)) map.set(key, [])
+    map.get(key)!.push(row)
+  }
+  return map
+})
+
+type FlatNode = {
+  id: string
+  name: string
+  depth: number
+  count: number
+  hasChildren: boolean
+}
+
+const flatTree = computed<FlatNode[]>(() => {
+  const out: FlatNode[] = []
+  const walk = (parentId: string | null, depth: number) => {
+    const kids = childrenByParent.value.get(parentId) ?? []
+    for (const c of kids) {
+      const grand = childrenByParent.value.get(c.id) ?? []
+      out.push({
+        id: c.id,
+        name: c.name,
+        depth,
+        count: statsMap.value.get(c.id)?.count ?? 0,
+        hasChildren: grand.length > 0,
+      })
+      if (expanded.value.has(c.id)) walk(c.id, depth + 1)
+    }
+  }
+  walk(null, 0)
+  return out
+})
+
+watchEffect(() => {
+  const list = collections.value ?? []
+  if (list.length === 0) return
+  for (const c of list) {
+    if (c.parent_id === null && (childrenByParent.value.get(c.id) ?? []).length > 0) {
+      expanded.value.add(c.id)
+    }
+  }
+  if (active.value === null) {
+    const firstWithCount = list.find((c) => (statsMap.value.get(c.id)?.count ?? 0) > 0)
+    active.value = (firstWithCount ?? list[0]!).id
+  }
+})
+
+function toggle(id: string) {
+  if (expanded.value.has(id)) expanded.value.delete(id)
+  else expanded.value.add(id)
+}
+
+const activeNode = computed(() => {
+  if (!active.value) return null
+  return (collections.value ?? []).find((c) => c.id === active.value) ?? null
+})
+
+const activeStats = computed(() => {
+  if (!active.value) return { count: 0, total: 0 }
+  return statsMap.value.get(active.value) ?? { count: 0, total: 0 }
+})
+
+const activeBreadcrumb = computed(() => {
+  if (!activeNode.value) return ''
+  const byId = new Map((collections.value ?? []).map((c) => [c.id, c] as const))
+  const chain: string[] = []
+  let cur: CollectionRow | undefined = activeNode.value
+  while (cur) {
+    chain.unshift(cur.name.toUpperCase())
+    cur = cur.parent_id ? byId.get(cur.parent_id) : undefined
+  }
+  return chain.join(' › ')
+})
+
+const { data: invoiceRows, pending: invoicesPending } = await useAsyncData(
+  'collection-invoices',
+  async () => {
+    if (!active.value || !user.value) return [] as InvoiceCardRow[]
+    const { data: links, error: linkErr } = await supabase
+      .from('invoice_collections')
+      .select('invoice_id')
+      .eq('collection_id', active.value)
+    if (linkErr || !links || links.length === 0) return [] as InvoiceCardRow[]
+    const ids = links.map((l: { invoice_id: string }) => l.invoice_id)
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('id, vendor, invoice_date, created_at, total, currency')
+      .in('id', ids)
+      .order('invoice_date', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
+    if (error) return [] as InvoiceCardRow[]
+    return (data ?? []) as InvoiceCardRow[]
+  },
+  { default: () => [] as InvoiceCardRow[], watch: [active, user] },
+)
+
+function formatDate(iso: string | null, fallback: string): string {
+  const src = iso || fallback
+  const d = new Date(src)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }).toUpperCase()
+}
+
+function formatAmount(n: number | null, currency: string | null): string {
+  if (n == null) return '—'
+  const sym =
+    currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
+  return `${sym} ${Number(n).toFixed(2)}`.trim()
+}
+
+function formatTotal(n: number): string {
+  return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+}
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60)
+}
+
+async function createCollection(parentId: string | null) {
+  const promptLabel = parentId ? 'Sub-collection name' : 'Collection name'
+  const raw = window.prompt(promptLabel)
+  if (!raw) return
+  const name = raw.trim()
+  if (!name) return
+  const slug = slugify(name)
+  if (!slug) {
+    window.alert('Please use a name containing at least one letter or number.')
+    return
+  }
+  // Read the session straight from the Supabase client (source of truth)
+  // rather than the Nuxt composable, which can be stale or unhydrated.
+  const { data: sessionData } = await supabase.auth.getSession()
+  const session = sessionData?.session
+  if (!session) {
+    window.alert('Your session has expired. Please sign in again.')
+    return
+  }
+  // user_id is filled by the column DEFAULT auth.uid() (migration 0004),
+  // so we never have to send it from the client.
+  const { error } = await supabase
+    .from('collections')
+    .insert({
+      parent_id: parentId,
+      name,
+      slug,
+    })
+  if (error) {
+    window.alert(`Could not create: ${error.message}`)
+    return
+  }
+  await Promise.all([refreshCollections(), refreshStats()])
+  if (parentId) expanded.value.add(parentId)
+}
+
+const monthLabel = new Date()
+  .toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  .toUpperCase()
 </script>
 
 <template>
@@ -39,51 +246,92 @@ const items = [
       <h1>Collections</h1>
       <div class="actions">
         <button class="btn-hifi btn-ghost btn-sm">Sort ▾</button>
-        <button class="btn-hifi btn-primary btn-sm">+ New collection</button>
+        <button class="btn-hifi btn-primary btn-sm" @click="createCollection(null)">
+          + New collection
+        </button>
       </div>
     </div>
 
     <section class="route">
-      <div class="coll-grid">
+      <div v-if="(collections ?? []).length === 0" class="empty-state">
+        <p>You haven't created any collections yet.</p>
+        <button
+          type="button"
+          class="btn-hifi btn-primary btn-sm"
+          @click="createCollection(null)"
+        >
+          + Create your first collection
+        </button>
+      </div>
+
+      <div v-else class="coll-grid">
         <div class="coll-tree">
           <div class="hdr">
             <span class="lb">TREE</span>
-            <button type="button" title="New collection">+</button>
+            <button type="button" title="New top-level collection" @click="createCollection(null)">+</button>
           </div>
           <button
-            v-for="node in tree"
+            v-for="node in flatTree"
             :key="node.id"
             type="button"
             class="ti"
-            :class="{ indent: node.indent, active: active === node.id }"
+            :class="{ indent: node.depth > 0, active: active === node.id }"
+            :style="{ paddingLeft: 10 + node.depth * 16 + 'px' }"
             @click="active = node.id"
           >
-            <span v-if="!node.indent" class="caret">{{ node.open ? '▾' : '▸' }}</span>
-            {{ node.label }}
+            <span
+              v-if="node.hasChildren"
+              class="caret clickable"
+              @click.stop="toggle(node.id)"
+            >
+              {{ expanded.has(node.id) ? '▾' : '▸' }}
+            </span>
+            <span v-else class="caret" aria-hidden="true">·</span>
+            <span class="lbl">{{ node.name }}</span>
             <span class="ct">{{ node.count }}</span>
           </button>
         </div>
 
         <div class="coll-content">
-          <div class="crumb">HOGAR › COMIDA</div>
-          <h2>Comida</h2>
-          <div class="meta">6 INVOICES · € 232 · MAY 2026</div>
+          <template v-if="activeNode">
+            <div class="crumb-row">
+              <div class="crumb">{{ activeBreadcrumb }}</div>
+              <button
+                type="button"
+                class="btn-hifi btn-ghost btn-sm"
+                @click="createCollection(activeNode.id)"
+              >
+                + Sub
+              </button>
+            </div>
+            <h2>{{ activeNode.name }}</h2>
+            <div class="meta">
+              {{ activeStats.count }} INVOICE{{ activeStats.count === 1 ? '' : 'S' }}
+              · {{ formatTotal(activeStats.total) }}
+              · {{ monthLabel }}
+            </div>
 
-          <div class="inv-cards">
-            <NuxtLink
-              v-for="item in items"
-              :key="item.id"
-              :to="`/app/invoices/${item.id}`"
-              class="inv-card"
-            >
-              <div class="thumb" />
-              <div class="name">{{ item.name }}</div>
-              <div class="row">
-                <span class="date">{{ item.date }}</span>
-                <span class="amt">{{ item.amt }}</span>
-              </div>
-            </NuxtLink>
-          </div>
+            <div v-if="invoicesPending" class="state-msg">Loading…</div>
+            <div v-else-if="(invoiceRows ?? []).length === 0" class="state-msg">
+              No invoices in this collection yet.
+            </div>
+            <div v-else class="inv-cards">
+              <NuxtLink
+                v-for="item in invoiceRows"
+                :key="item.id"
+                :to="`/app/invoices/${item.id}`"
+                class="inv-card"
+              >
+                <div class="thumb" />
+                <div class="name">{{ item.vendor || 'Unknown vendor' }}</div>
+                <div class="row">
+                  <span class="date">{{ formatDate(item.invoice_date, item.created_at) }}</span>
+                  <span class="amt">{{ formatAmount(item.total, item.currency) }}</span>
+                </div>
+              </NuxtLink>
+            </div>
+          </template>
+          <div v-else class="state-msg">Select a collection to see its invoices.</div>
         </div>
       </div>
     </section>
@@ -109,6 +357,19 @@ const items = [
 .actions { display: flex; gap: 8px; }
 
 .route { padding: 36px; }
+
+.empty-state {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 48px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--ink-2);
+}
+.empty-state p { margin: 0; font-size: 14px; }
 
 .coll-grid {
   display: grid;
@@ -174,11 +435,7 @@ const items = [
   font-weight: 500;
   box-shadow: 0 0 0 1px var(--line-2);
 }
-.ti.indent {
-  padding-left: 26px;
-  color: var(--ink-3);
-  font-size: 13px;
-}
+.ti.indent { color: var(--ink-3); font-size: 13px; }
 .ti.indent.active { color: var(--ink); }
 .ti .ct {
   margin-left: auto;
@@ -187,15 +444,24 @@ const items = [
   color: var(--ink-3);
 }
 .ti.active .ct { color: var(--ink-2); }
-.ti .caret { width: 12px; opacity: 0.5; }
+.ti .caret { width: 12px; opacity: 0.5; text-align: center; }
+.ti .caret.clickable { cursor: pointer; opacity: 0.8; }
+.ti .caret.clickable:hover { opacity: 1; }
+.ti .lbl { flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+.crumb-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
 .coll-content .crumb {
   font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
   font-size: 11px;
   color: var(--ink-3);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 8px;
 }
 .coll-content h2 {
   margin: 0;
@@ -208,6 +474,17 @@ const items = [
   font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
   font-size: 12px;
   color: var(--ink-3);
+}
+
+.state-msg {
+  margin-top: 24px;
+  padding: 32px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--ink-3);
+  text-align: center;
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
 }
 
 .inv-cards {

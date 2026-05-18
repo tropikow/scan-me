@@ -24,6 +24,7 @@ type ScanResult = {
 }
 
 const router = useRouter()
+const supabase = useSupabaseClient()
 
 type Phase = 'idle' | 'processing' | 'review' | 'error'
 const phase = ref<Phase>('idle')
@@ -38,12 +39,50 @@ const fields = reactive({
   merchant: '',
   date: '',
   tax: '',
-  collection: 'Hogar › Comida',
+  collection: '' as string,
   user: '@maria · Family',
   tags: ''
 })
 
-const collections = ['Hogar › Comida', 'Hogar › Luz', 'Tools › AI', 'Transport']
+type CollectionRow = {
+  id: string
+  parent_id: string | null
+  name: string
+  position: number
+}
+
+const { data: collectionRows } = await useAsyncData(
+  'scan-collections',
+  async () => {
+    const { data, error } = await supabase
+      .from('collections')
+      .select('id, parent_id, name, position')
+      .order('position', { ascending: true })
+      .order('name', { ascending: true })
+    if (error) return [] as CollectionRow[]
+    return (data ?? []) as CollectionRow[]
+  },
+  { default: () => [] as CollectionRow[] },
+)
+
+const collectionOptions = computed<{ id: string; label: string }[]>(() => {
+  const rows = collectionRows.value ?? []
+  const byId = new Map(rows.map((r) => [r.id, r] as const))
+  const labelFor = (row: CollectionRow): string => {
+    const chain: string[] = []
+    let cur: CollectionRow | undefined = row
+    let safety = 0
+    while (cur && safety < 50) {
+      chain.unshift(cur.name)
+      cur = cur.parent_id ? byId.get(cur.parent_id) : undefined
+      safety++
+    }
+    return chain.join(' › ')
+  }
+  return rows
+    .map((r) => ({ id: r.id, label: labelFor(r) }))
+    .sort((a, b) => a.label.localeCompare(b.label))
+})
 
 const dragOver = ref(false)
 const inputRef = ref<HTMLInputElement | null>(null)
@@ -170,6 +209,16 @@ async function save() {
       method: 'POST',
       body: form
     })
+    if (fields.collection) {
+      const { error: linkErr } = await supabase
+        .from('invoice_collections')
+        .insert({ invoice_id: res.id, collection_id: fields.collection })
+      if (linkErr) {
+        // Non-fatal: invoice was created, just the categorization failed.
+        // Surface it but still continue to the detail page.
+        console.warn('Could not link invoice to collection:', linkErr.message)
+      }
+    }
     await router.push(`/app/invoices/${res.id}`)
   } catch (err: unknown) {
     const message =
@@ -288,7 +337,8 @@ onBeforeUnmount(() => {
           <div class="scan-row">
             <span class="lbl">COLLECTION</span>
             <select v-model="fields.collection">
-              <option v-for="c in collections" :key="c" :value="c">{{ c }}</option>
+              <option value="">— None —</option>
+              <option v-for="c in collectionOptions" :key="c.id" :value="c.id">{{ c.label }}</option>
             </select>
             <span class="edit">▾</span>
           </div>
