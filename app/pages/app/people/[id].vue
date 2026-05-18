@@ -7,6 +7,7 @@ type Person = {
   role: string
   note: string | null
   created_at: string
+  share_token: string
 }
 
 type InvoiceRow = {
@@ -29,12 +30,12 @@ const route = useRoute()
 const supabase = useSupabaseClient()
 const personId = computed(() => route.params.id as string)
 
-const { data: person } = await useAsyncData(
+const { data: person, refresh: refreshPerson } = await useAsyncData(
   () => `person-${personId.value}`,
   async () => {
     const { data, error } = await supabase
       .from('people')
-      .select('id, name, role, note, created_at')
+      .select('id, name, role, note, created_at, share_token')
       .eq('id', personId.value)
       .maybeSingle()
     if (error) return null
@@ -76,6 +77,53 @@ const { data: collectionLinks } = await useAsyncData(
 )
 
 useHead({ title: () => `scan-me — ${person.value?.name ?? 'person'}` })
+
+// === Share link ============================================================
+const shareLink = computed(() => {
+  const token = person.value?.share_token
+  if (!token) return ''
+  // On the server we don't have window; we use the request origin from useRequestURL.
+  const url = useRequestURL()
+  return `${url.origin}/p/${token}`
+})
+
+const copied = ref(false)
+const regenerating = ref(false)
+const shareError = ref<string | null>(null)
+
+async function copyShareLink() {
+  shareError.value = null
+  if (!shareLink.value) return
+  try {
+    await navigator.clipboard.writeText(shareLink.value)
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 1500)
+  } catch {
+    shareError.value = 'Could not copy. Long-press the link to copy manually.'
+  }
+}
+
+async function regenerateShareLink() {
+  if (regenerating.value || !person.value) return
+  const ok = window.confirm(
+    'Generate a new link? The current link will stop working immediately and ' +
+    'anyone with it will have to use the new one.',
+  )
+  if (!ok) return
+  regenerating.value = true
+  shareError.value = null
+  const newToken = crypto.randomUUID()
+  const { error } = await supabase
+    .from('people')
+    .update({ share_token: newToken })
+    .eq('id', person.value.id)
+  regenerating.value = false
+  if (error) {
+    shareError.value = `Could not regenerate link: ${error.message}`
+    return
+  }
+  await refreshPerson()
+}
 
 function symbolFor(currency: string | null | undefined): string {
   return currency === 'EUR'
@@ -245,6 +293,38 @@ function formatCardAmount(n: number | null, currency: string | null): string {
             ALL TIME {{ fmtMoney(allTimeTotal) }}
           </div>
         </div>
+      </div>
+
+      <div class="share-card">
+        <div class="share-head">
+          <div>
+            <div class="share-title">Public upload link</div>
+            <div class="share-hint">
+              {{ person.name }} can use this link to send you a receipt without signing in.
+              Anyone with the link can upload — keep it private.
+            </div>
+          </div>
+          <div class="share-actions">
+            <button
+              type="button"
+              class="btn-hifi btn-ghost btn-sm"
+              :disabled="regenerating"
+              @click="regenerateShareLink"
+            >
+              {{ regenerating ? 'Regenerating…' : '↻ Regenerate' }}
+            </button>
+            <button
+              type="button"
+              class="btn-hifi btn-primary btn-sm"
+              :disabled="!shareLink"
+              @click="copyShareLink"
+            >
+              {{ copied ? '✓ Copied' : 'Copy link' }}
+            </button>
+          </div>
+        </div>
+        <div class="share-link mono">{{ shareLink || '…' }}</div>
+        <div v-if="shareError" class="share-error">{{ shareError }}</div>
       </div>
 
       <div class="split">
@@ -543,5 +623,59 @@ function formatCardAmount(n: number | null, currency: string | null): string {
   margin: 0 0 8px;
   color: var(--ink-3);
   font-size: 14px;
+}
+
+/* === Share link card === */
+.share-card {
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.share-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.share-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.share-hint {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.45;
+  max-width: 64ch;
+}
+.share-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.share-link {
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line-2, var(--line));
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  word-break: break-all;
+  user-select: all;
+}
+.share-error {
+  padding: 10px 12px;
+  background: var(--accent-error, #E8B4B4);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink);
 }
 </style>
