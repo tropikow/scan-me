@@ -126,6 +126,91 @@ const axisLabels = computed(() => {
   return stops.map((d) => String(d).padStart(2, '0'))
 })
 
+const { data: topCategory } = await useAsyncData(
+  'dashboard-top-category',
+  async () => {
+    if (!user.value) return null as { name: string; amount: number } | null
+    const [invRes, linksRes, collRes] = await Promise.all([
+      supabase
+        .from('invoices')
+        .select('id, total')
+        .is('voided_at', null)
+        .gte('created_at', curMonthStart)
+        .lt('created_at', nextMonthStart),
+      supabase.from('invoice_collections').select('invoice_id, collection_id'),
+      supabase.from('collections').select('id, parent_id, name'),
+    ])
+    if (invRes.error || linksRes.error || collRes.error) return null
+    type CollNode = { id: string; parent_id: string | null; name: string }
+    const invoiceTotals = new Map<string, number>()
+    for (const i of (invRes.data ?? []) as { id: string; total: number | null }[]) {
+      invoiceTotals.set(i.id, Number(i.total ?? 0))
+    }
+    const collById = new Map<string, CollNode>()
+    for (const c of (collRes.data ?? []) as CollNode[]) collById.set(c.id, c)
+    const rootCache = new Map<string, string | null>()
+    const rootOf = (id: string): string | null => {
+      const cached = rootCache.get(id)
+      if (cached !== undefined) return cached
+      let cur = collById.get(id)
+      let safety = 0
+      while (cur && cur.parent_id && safety < 50) {
+        const next = collById.get(cur.parent_id)
+        if (!next) break
+        cur = next
+        safety++
+      }
+      const rootId = cur?.id ?? null
+      rootCache.set(id, rootId)
+      return rootId
+    }
+    const totalByRoot = new Map<string, number>()
+    const seenByRoot = new Map<string, Set<string>>()
+    type LinkRow = { invoice_id: string; collection_id: string }
+    for (const link of (linksRes.data ?? []) as LinkRow[]) {
+      const total = invoiceTotals.get(link.invoice_id)
+      if (total == null) continue // outside the month, voided, or not visible
+      const rootId = rootOf(link.collection_id)
+      if (!rootId) continue
+      const seen = seenByRoot.get(rootId) ?? new Set<string>()
+      if (seen.has(link.invoice_id)) continue
+      seen.add(link.invoice_id)
+      seenByRoot.set(rootId, seen)
+      totalByRoot.set(rootId, (totalByRoot.get(rootId) ?? 0) + total)
+    }
+    if (totalByRoot.size === 0) return null
+    let topId: string | null = null
+    let topAmount = 0
+    for (const [rootId, amount] of totalByRoot) {
+      if (amount > topAmount) {
+        topAmount = amount
+        topId = rootId
+      }
+    }
+    if (!topId) return null
+    return {
+      name: collById.get(topId)?.name ?? 'Untitled',
+      amount: topAmount,
+    }
+  },
+  { default: () => null as { name: string; amount: number } | null, watch: [user] },
+)
+
+const topCategoryKpi = computed(() => {
+  const t = topCategory.value
+  if (!t) {
+    return { value: '—', valueSmall: true, sub: 'No assignments this month' }
+  }
+  const totalMonth = monthSpend.value?.current ?? 0
+  const pct = totalMonth > 0 ? Math.round((t.amount / totalMonth) * 100) : 0
+  const amt = Math.round(t.amount).toLocaleString('en-US')
+  return {
+    value: t.name,
+    valueSmall: true,
+    sub: pct > 0 ? `€ ${amt} · ${pct}%` : `€ ${amt}`,
+  }
+})
+
 const { data: peopleStats } = await useAsyncData(
   'dashboard-people-stats',
   async () => {
@@ -213,7 +298,12 @@ const kpis = computed(() => [
         : 'No new this week',
   },
   { lbl: 'PEOPLE', value: peopleKpi.value.value, sub: peopleKpi.value.sub },
-  { lbl: 'TOP CATEGORY', value: 'Hogar', valueSmall: true, sub: '€ 514 · 40%' },
+  {
+    lbl: 'TOP CATEGORY',
+    value: topCategoryKpi.value.value,
+    valueSmall: topCategoryKpi.value.valueSmall,
+    sub: topCategoryKpi.value.sub,
+  },
   { lbl: 'AVG / INVOICE', value: avgInvoice.value.value, sub: avgInvoice.value.sub },
 ])
 
