@@ -16,6 +16,7 @@ type InvoiceRow = {
   image_path: string | null
   tags: string[] | null
   created_at: string
+  voided_at: string | null
 }
 
 type InvoiceItem = {
@@ -141,6 +142,7 @@ function downloadPdf() {
             :tax-rate="data.invoice.tax_rate"
             :total="data.invoice.total"
             :items="data.items"
+            :voided-at="data.invoice.voided_at"
           />
 
           <div class="inv-original">

@@ -21,6 +21,7 @@ type Props = {
   total: number | null
   items: InvoiceItem[]
   invoiceId: string
+  voidedAt?: string | null
 }
 
 const props = defineProps<Props>()
@@ -51,18 +52,41 @@ function formatDate(iso: string | null | undefined, fallback?: string | null): s
 
 const shortId = computed(() => props.invoiceId.slice(0, 8).toUpperCase())
 const itemCount = computed(() => props.items.length)
+const isVoided = computed(() => !!props.voidedAt)
+const voidedDateLabel = computed(() => formatDate(props.voidedAt))
 </script>
 
 <template>
-  <article class="dinv" aria-label="Digital invoice">
+  <article
+    class="dinv"
+    :class="{ 'dinv-is-voided': isVoided }"
+    :aria-label="isVoided ? 'Digital invoice (voided)' : 'Digital invoice'"
+  >
+    <div
+      v-if="isVoided"
+      class="dinv-void-stamp"
+      role="img"
+      aria-label="Voided invoice"
+    >
+      <span class="dinv-void-stamp-text">ANULADA</span>
+      <span v-if="voidedDateLabel !== '—'" class="dinv-void-stamp-date mono">
+        {{ voidedDateLabel }}
+      </span>
+    </div>
+
     <header class="dinv-head">
       <div class="dinv-brand">
         <img src="~/assets/images/logo-1.png" alt="" class="dinv-logo" />
         <span class="dinv-brand-name">scan-me</span>
       </div>
-      <div class="dinv-stamp">
-        <span class="dinv-stamp-label">Invoice</span>
-        <span class="dinv-stamp-id mono">#{{ shortId }}</span>
+      <div class="dinv-head-right">
+        <span v-if="isVoided" class="dinv-void-badge mono" aria-hidden="true">
+          ⊘ ANULADA
+        </span>
+        <div class="dinv-stamp">
+          <span class="dinv-stamp-label">Invoice</span>
+          <span class="dinv-stamp-id mono">#{{ shortId }}</span>
+        </div>
       </div>
     </header>
 
@@ -190,6 +214,25 @@ const itemCount = computed(() => props.items.length)
   font-weight: 600;
   letter-spacing: -0.02em;
   font-size: 15px;
+}
+.dinv-head-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.dinv-void-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-error, #E8B4B4);
+  background: color-mix(in srgb, var(--accent-error, #E8B4B4) 25%, transparent);
+  color: var(--fg-primary);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 .dinv-stamp {
   display: inline-flex;
@@ -384,5 +427,56 @@ const itemCount = computed(() => props.items.length)
     font-size: 12px;
   }
   .dinv-trow.grand .dinv-val { font-size: 18px; }
+}
+
+/* Voided state */
+.dinv-is-voided {
+  overflow: hidden;
+}
+.dinv-is-voided .dinv-val,
+.dinv-is-voided .dinv-col-amt,
+.dinv-is-voided .dinv-trow.grand .dinv-val {
+  text-decoration: line-through;
+  text-decoration-color: var(--accent-error, #E8B4B4);
+  text-decoration-thickness: 1.5px;
+}
+.dinv-void-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-14deg);
+  padding: 12px 36px;
+  border: 4px double var(--accent-error, #E8B4B4);
+  border-radius: 8px;
+  color: var(--accent-error, #E8B4B4);
+  background: color-mix(in srgb, var(--bg-surface, #FFFFFF) 70%, transparent);
+  pointer-events: none;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  opacity: 0.92;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.dinv-void-stamp-text {
+  font-size: clamp(28px, 6vw, 44px);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  line-height: 1;
+}
+.dinv-void-stamp-date {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  opacity: 0.85;
+}
+@media print {
+  .dinv-void-stamp {
+    opacity: 1;
+    background: transparent;
+  }
 }
 </style>
