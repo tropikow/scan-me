@@ -51,6 +51,14 @@ type IncomingPayload = {
   tags?: unknown
   notes?: unknown
   items?: unknown
+  person_id?: unknown
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+function toUuid(v: unknown): string | null {
+  if (typeof v !== 'string') return null
+  const s = v.trim()
+  return UUID_RE.test(s) ? s.toLowerCase() : null
 }
 
 function toStr(v: unknown, max = 500): string | null {
@@ -148,6 +156,21 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 502, statusMessage: 'Failed to store image' })
   }
 
+  // Resolve and validate the optional person link. RLS on `people` ensures
+  // the lookup only matches rows owned by the current user, so cross-tenant
+  // assignment is impossible even if the client tampers with the UUID.
+  let personId: string | null = toUuid(payload.person_id)
+  if (personId) {
+    const { data: personRow, error: personErr } = await supabase
+      .from('people')
+      .select('id')
+      .eq('id', personId)
+      .maybeSingle()
+    if (personErr || !personRow) {
+      throw createError({ statusCode: 400, statusMessage: 'Invalid person assignment' })
+    }
+  }
+
   const invoiceRow = {
     id: invoiceId,
     user_id: userId,
@@ -163,7 +186,8 @@ export default defineEventHandler(async (event) => {
     confidence: toNum(payload.confidence),
     notes: toStr(payload.notes, 2000),
     tags: toTags(payload.tags),
-    image_path: objectPath
+    image_path: objectPath,
+    person_id: personId
   }
 
   const { error: insertErr } = await supabase.from('invoices').insert(invoiceRow)

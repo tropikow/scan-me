@@ -40,7 +40,7 @@ const fields = reactive({
   date: '',
   tax: '',
   collection: '' as string,
-  user: '@maria · Family',
+  person_id: '' as string,
   tags: ''
 })
 
@@ -83,6 +83,28 @@ const collectionOptions = computed<{ id: string; label: string }[]>(() => {
     .map((r) => ({ id: r.id, label: labelFor(r) }))
     .sort((a, b) => a.label.localeCompare(b.label))
 })
+
+type PersonRow = { id: string; name: string; role: string }
+
+const { data: personRows } = await useAsyncData(
+  'scan-people',
+  async () => {
+    const { data, error } = await supabase
+      .from('people')
+      .select('id, name, role')
+      .order('name', { ascending: true })
+    if (error) return [] as PersonRow[]
+    return (data ?? []) as PersonRow[]
+  },
+  { default: () => [] as PersonRow[] },
+)
+
+const personOptions = computed<{ id: string; label: string }[]>(() =>
+  (personRows.value ?? []).map((p) => ({
+    id: p.id,
+    label: `${p.name} · ${p.role}`,
+  })),
+)
 
 const dragOver = ref(false)
 const inputRef = ref<HTMLInputElement | null>(null)
@@ -196,6 +218,7 @@ async function save() {
     total: result.value.total,
     confidence: result.value.confidence,
     items: result.value.items,
+    person_id: fields.person_id || null,
     tags: fields.tags
       ? fields.tags.split(',').map((t) => t.trim()).filter(Boolean)
       : []
@@ -344,7 +367,10 @@ onBeforeUnmount(() => {
           </div>
           <div class="scan-row">
             <span class="lbl">USER</span>
-            <input v-model="fields.user" />
+            <select v-model="fields.person_id">
+              <option value="">— None —</option>
+              <option v-for="p in personOptions" :key="p.id" :value="p.id">{{ p.label }}</option>
+            </select>
             <span class="edit">▾</span>
           </div>
           <div class="scan-row">
