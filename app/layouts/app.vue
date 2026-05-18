@@ -45,6 +45,119 @@ const { data: peopleCount } = await useAsyncData(
   { default: () => 0, watch: [user] },
 )
 
+// ─── Sidebar search ───────────────────────────────────────────────────────
+type PersonHit = { id: string; name: string; role: string }
+type InvoiceHit = {
+  id: string
+  vendor: string | null
+  total: number | null
+  currency: string | null
+  created_at: string
+}
+
+const searchQuery = ref('')
+const showResults = ref(false)
+const searching = ref(false)
+const peopleHits = ref<PersonHit[]>([])
+const invoiceHits = ref<InvoiceHit[]>([])
+const searchContainer = ref<HTMLElement | null>(null)
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+let searchSeq = 0
+
+// Escape LIKE wildcards so the user types literal text, not patterns.
+function escapeLike(s: string): string {
+  return s.replace(/[\\%_]/g, (c) => `\\${c}`)
+}
+
+async function runSearch(raw: string) {
+  const q = raw.trim()
+  if (q.length < 2) {
+    peopleHits.value = []
+    invoiceHits.value = []
+    searching.value = false
+    return
+  }
+  const seq = ++searchSeq
+  searching.value = true
+  const pattern = `%${escapeLike(q)}%`
+
+  const [peopleRes, invoiceRes] = await Promise.all([
+    supabase
+      .from('people')
+      .select('id, name, role')
+      .ilike('name', pattern)
+      .order('name', { ascending: true })
+      .limit(5),
+    supabase
+      .from('invoices')
+      .select('id, vendor, total, currency, created_at')
+      .ilike('vendor', pattern)
+      .order('created_at', { ascending: false })
+      .limit(5),
+  ])
+
+  // Drop out-of-order responses (later query already started).
+  if (seq !== searchSeq) return
+
+  peopleHits.value = (peopleRes.error ? [] : (peopleRes.data ?? [])) as PersonHit[]
+  invoiceHits.value = (invoiceRes.error ? [] : (invoiceRes.data ?? [])) as InvoiceHit[]
+  searching.value = false
+}
+
+watch(searchQuery, (val) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  if (!val.trim()) {
+    peopleHits.value = []
+    invoiceHits.value = []
+    searching.value = false
+    return
+  }
+  searchTimer = setTimeout(() => runSearch(val), 180)
+})
+
+function focusSearch() {
+  showResults.value = true
+}
+
+function clearSearch() {
+  searchQuery.value = ''
+  peopleHits.value = []
+  invoiceHits.value = []
+  showResults.value = false
+}
+
+function onClickOutside(e: MouseEvent) {
+  const root = searchContainer.value
+  if (!root) return
+  if (!root.contains(e.target as Node)) {
+    showResults.value = false
+  }
+}
+
+const hasResults = computed(
+  () => peopleHits.value.length > 0 || invoiceHits.value.length > 0,
+)
+
+const formatAmount = (n: number | null, currency: string | null) => {
+  if (n == null) return ''
+  const sym =
+    currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
+  return `${sym} ${n.toFixed(2)}`.trim()
+}
+
+// Close the dropdown when the route changes (user clicked a result, etc.)
+watch(() => router.currentRoute.value.fullPath, () => {
+  showResults.value = false
+})
+
+onMounted(() => {
+  document.addEventListener('mousedown', onClickOutside)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', onClickOutside)
+  if (searchTimer) clearTimeout(searchTimer)
+})
+
 async function signOut() {
   await supabase.auth.signOut()
   await router.push('/signin')
@@ -64,10 +177,68 @@ async function signOut() {
         </button>
       </div>
 
-      <div class="sb-search">
+      <div ref="searchContainer" class="sb-search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="16.3" y1="16.3" x2="21" y2="21"/></svg>
-        <input type="text" placeholder="Search receipts, people…" />
-        <kbd>⌘K</kbd>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search receipts, people…"
+          autocomplete="off"
+          spellcheck="false"
+          @focus="focusSearch"
+          @keydown.esc="clearSearch"
+        />
+        <button
+          v-if="searchQuery"
+          type="button"
+          class="sb-search-clear"
+          aria-label="Clear search"
+          @click="clearSearch"
+        >×</button>
+        <kbd v-else>⌘K</kbd>
+
+        <div
+          v-if="showResults && searchQuery.trim().length >= 2"
+          class="sb-search-panel"
+          role="listbox"
+        >
+          <div v-if="searching && !hasResults" class="sb-search-state mono">Searching…</div>
+          <template v-else-if="hasResults">
+            <div v-if="peopleHits.length" class="sb-search-group">
+              <div class="sb-search-group-lb mono">People</div>
+              <NuxtLink
+                v-for="p in peopleHits"
+                :key="`p-${p.id}`"
+                :to="`/app/people/${p.id}`"
+                class="sb-search-item"
+                @click="clearSearch"
+              >
+                <span class="sb-search-avatar">{{ p.name.charAt(0).toUpperCase() }}</span>
+                <span class="sb-search-text">
+                  <span class="sb-search-name">{{ p.name }}</span>
+                  <span class="sb-search-meta mono">{{ p.role }}</span>
+                </span>
+              </NuxtLink>
+            </div>
+            <div v-if="invoiceHits.length" class="sb-search-group">
+              <div class="sb-search-group-lb mono">Invoices</div>
+              <NuxtLink
+                v-for="inv in invoiceHits"
+                :key="`i-${inv.id}`"
+                :to="`/app/invoices/${inv.id}`"
+                class="sb-search-item"
+                @click="clearSearch"
+              >
+                <span class="sb-search-avatar mono">{{ (inv.vendor || '·').charAt(0).toUpperCase() }}</span>
+                <span class="sb-search-text">
+                  <span class="sb-search-name">{{ inv.vendor || 'Untitled' }}</span>
+                  <span class="sb-search-meta mono">{{ formatAmount(inv.total, inv.currency) }}</span>
+                </span>
+              </NuxtLink>
+            </div>
+          </template>
+          <div v-else class="sb-search-state mono">No matches</div>
+        </div>
       </div>
 
       <NuxtLink to="/app/scan" class="sb-scan">
@@ -206,6 +377,100 @@ async function signOut() {
   padding: 2px 5px;
   border-radius: 4px;
   border: 1px solid var(--line);
+}
+.sb-search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.sb-search-clear:hover { color: var(--ink); background: var(--surface); }
+
+.sb-search-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 6px;
+  right: 6px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px;
+  max-height: 360px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sb-search-state {
+  padding: 12px 10px;
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.sb-search-group { display: flex; flex-direction: column; gap: 1px; }
+.sb-search-group-lb {
+  padding: 6px 10px 4px;
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.sb-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: inherit;
+  transition: background 0.12s;
+}
+.sb-search-item:hover { background: var(--surface); }
+.sb-search-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+.sb-search-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.sb-search-name {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sb-search-meta {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  margin-top: 1px;
 }
 
 .sb-scan {
