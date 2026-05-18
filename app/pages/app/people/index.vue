@@ -27,6 +27,63 @@ const { data: people, refresh } = await useAsyncData(
   { default: () => [] as PersonRow[] },
 )
 
+type InvoiceAggRow = { person_id: string; total: number | null; currency: string | null }
+
+const { data: invoiceAgg } = await useAsyncData(
+  'people-invoice-agg',
+  async () => {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('person_id, total, currency')
+      .not('person_id', 'is', null)
+      .is('voided_at', null)
+    if (error) return [] as InvoiceAggRow[]
+    return (data ?? []) as InvoiceAggRow[]
+  },
+  { default: () => [] as InvoiceAggRow[] },
+)
+
+type Stat = { count: number; total: number; currency: string }
+const statsByPerson = computed<Map<string, Stat>>(() => {
+  const m = new Map<string, Stat>()
+  const currencyCounts = new Map<string, Map<string, number>>()
+  for (const r of invoiceAgg.value) {
+    if (!r.person_id) continue
+    const prev = m.get(r.person_id) ?? { count: 0, total: 0, currency: '' }
+    prev.count += 1
+    prev.total += Number(r.total ?? 0)
+    m.set(r.person_id, prev)
+    const cc = currencyCounts.get(r.person_id) ?? new Map<string, number>()
+    const c = r.currency ?? ''
+    cc.set(c, (cc.get(c) ?? 0) + 1)
+    currencyCounts.set(r.person_id, cc)
+  }
+  for (const [pid, cc] of currencyCounts.entries()) {
+    let best = ''
+    let bestN = 0
+    for (const [k, n] of cc.entries()) if (n > bestN) { best = k; bestN = n }
+    const stat = m.get(pid)
+    if (stat) stat.currency = best
+  }
+  return m
+})
+
+function symbolFor(currency: string): string {
+  return currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || '€'
+}
+
+function amtFor(personId: string): string {
+  const s = statsByPerson.value.get(personId)
+  if (!s || s.count === 0) return '—'
+  return `${symbolFor(s.currency)} ${Math.round(s.total).toLocaleString('en-US')}`
+}
+
+function countFor(personId: string): string {
+  const s = statsByPerson.value.get(personId)
+  const n = s?.count ?? 0
+  return `${n} ${n === 1 ? 'INV' : 'INV'}`
+}
+
 const roleFilter = ref<'All' | string>('All')
 const showRoleMenu = ref(false)
 
@@ -168,8 +225,8 @@ async function submitAdd() {
             <div v-if="p.note" class="note">{{ p.note }}</div>
           </div>
           <div class="stats">
-            <span class="amt">—</span>
-            <span class="ct">0 INV</span>
+            <span class="amt">{{ amtFor(p.id) }}</span>
+            <span class="ct">{{ countFor(p.id) }}</span>
           </div>
         </NuxtLink>
 
