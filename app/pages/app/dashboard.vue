@@ -33,22 +33,31 @@ const { data: monthSpend } = await useAsyncData(
       supabase
         .from('invoices')
         .select('total')
+        .is('voided_at', null)
         .gte('created_at', curMonthStart)
         .lt('created_at', nextMonthStart),
       supabase
         .from('invoices')
         .select('total')
+        .is('voided_at', null)
         .gte('created_at', prevMonthStart)
         .lt('created_at', curMonthStart),
     ])
     const sum = (rows: { total: number | null }[] | null | undefined) =>
       (rows ?? []).reduce((acc, r) => acc + (r.total ?? 0), 0)
+    const count = (rows: { total: number | null }[] | null | undefined) =>
+      (rows ?? []).length
     return {
       current: curRes.error ? 0 : sum(curRes.data),
       previous: prevRes.error ? 0 : sum(prevRes.data),
+      currentCount: curRes.error ? 0 : count(curRes.data),
+      previousCount: prevRes.error ? 0 : count(prevRes.data),
     }
   },
-  { default: () => ({ current: 0, previous: 0 }), watch: [user] },
+  {
+    default: () => ({ current: 0, previous: 0, currentCount: 0, previousCount: 0 }),
+    watch: [user],
+  },
 )
 
 const monthSpendDisplay = computed(() => {
@@ -79,6 +88,7 @@ const { data: dailySpendRows } = await useAsyncData(
     const { data, error } = await supabase
       .from('invoices')
       .select('created_at, total')
+      .is('voided_at', null)
       .gte('created_at', curMonthStart)
       .lt('created_at', nextMonthStart)
     if (error) return [] as { created_at: string; total: number | null }[]
@@ -136,6 +146,27 @@ const { data: invoiceStats } = await useAsyncData(
   { default: () => ({ total: 0, thisWeek: 0 }), watch: [user] },
 )
 
+const avgInvoice = computed(() => {
+  const cur = monthSpend.value?.current ?? 0
+  const curN = monthSpend.value?.currentCount ?? 0
+  const prev = monthSpend.value?.previous ?? 0
+  const prevN = monthSpend.value?.previousCount ?? 0
+  const curAvg = curN > 0 ? Math.round(cur / curN) : 0
+  const prevAvg = prevN > 0 ? Math.round(prev / prevN) : 0
+  const value = curN === 0 ? '—' : `€ ${curAvg}`
+  let sub = '—'
+  if (curN > 0 && prevN > 0) {
+    const diff = curAvg - prevAvg
+    const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '·'
+    sub = diff === 0
+      ? `· same as ${prevMonthLabel}`
+      : `${arrow} €${Math.abs(diff)} vs ${prevMonthLabel}`
+  } else if (curN > 0) {
+    sub = 'NEW'
+  }
+  return { value, sub }
+})
+
 const kpis = computed(() => [
   {
     lbl: 'INVOICES',
@@ -147,7 +178,7 @@ const kpis = computed(() => [
   },
   { lbl: 'PEOPLE', value: '7', sub: '4 active' },
   { lbl: 'TOP CATEGORY', value: 'Hogar', valueSmall: true, sub: '€ 514 · 40%' },
-  { lbl: 'AVG / INVOICE', value: '€ 27', sub: '↓ €4 vs Apr' },
+  { lbl: 'AVG / INVOICE', value: avgInvoice.value.value, sub: avgInvoice.value.sub },
 ])
 
 type RecentInvoice = {

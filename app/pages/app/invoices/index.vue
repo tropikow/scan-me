@@ -9,14 +9,17 @@ type InvoiceRow = {
   currency: string | null
   total: number | null
   created_at: string
+  voided_at: string | null
 }
 
 const supabase = useSupabaseClient()
+const updatingId = ref<string | null>(null)
+const actionError = ref<string | null>(null)
 
 const { data, pending, error, refresh } = await useAsyncData('invoices-list', async () => {
   const { data, error } = await supabase
     .from('invoices')
-    .select('id, vendor, invoice_date, currency, total, created_at')
+    .select('id, vendor, invoice_date, currency, total, created_at, voided_at')
     .order('created_at', { ascending: false })
     .limit(120)
   if (error) throw error
@@ -38,6 +41,28 @@ function formatAmount(n: number | null, currency: string | null): string {
     currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
   return `${symbol} ${n.toFixed(2)}`.trim()
 }
+
+async function voidInvoice(inv: InvoiceRow) {
+  if (updatingId.value || inv.voided_at) return
+  const ok = window.confirm(
+    `Anular esta factura de "${inv.vendor || 'Untitled'}"? Esta acción no se puede deshacer. ` +
+      'Para recuperar el importe en tus totales tendrás que volver a subir la factura.',
+  )
+  if (!ok) return
+  updatingId.value = inv.id
+  actionError.value = null
+  const now = new Date().toISOString()
+  const { error: updErr } = await supabase
+    .from('invoices')
+    .update({ voided_at: now })
+    .eq('id', inv.id)
+  if (updErr) {
+    actionError.value = `Could not void invoice: ${updErr.message}`
+  } else {
+    inv.voided_at = now
+  }
+  updatingId.value = null
+}
 </script>
 
 <template>
@@ -57,6 +82,8 @@ function formatAmount(n: number | null, currency: string | null): string {
         <template v-else>ALL · {{ data?.length ?? 0 }} INVOICES</template>
       </div>
 
+      <div v-if="actionError" class="state error">{{ actionError }}</div>
+
       <div v-if="error" class="state error">
         Could not load invoices. Try refreshing.
       </div>
@@ -68,19 +95,36 @@ function formatAmount(n: number | null, currency: string | null): string {
       </div>
 
       <div v-else class="inv-cards">
-        <NuxtLink
+        <div
           v-for="inv in data"
           :key="inv.id"
-          :to="`/app/invoices/${inv.id}`"
           class="inv-card"
+          :class="{ voided: !!inv.voided_at }"
         >
-          <div class="thumb" />
-          <div class="name">{{ inv.vendor || 'Untitled' }}</div>
-          <div class="row">
-            <span class="date">{{ formatDate(inv.invoice_date, inv.created_at) }}</span>
-            <span class="amt">{{ formatAmount(inv.total, inv.currency) }}</span>
+          <NuxtLink :to="`/app/invoices/${inv.id}`" class="inv-card-link">
+            <div class="thumb">
+              <span v-if="inv.voided_at" class="thumb-badge">VOIDED</span>
+            </div>
+            <div class="name">{{ inv.vendor || 'Untitled' }}</div>
+            <div class="row">
+              <span class="date">{{ formatDate(inv.invoice_date, inv.created_at) }}</span>
+              <span class="amt">{{ formatAmount(inv.total, inv.currency) }}</span>
+            </div>
+          </NuxtLink>
+          <div v-if="inv.voided_at" class="void-tag" aria-label="Factura anulada">
+            ⊘ Anulada
           </div>
-        </NuxtLink>
+          <button
+            v-else
+            type="button"
+            class="void-btn"
+            :disabled="updatingId === inv.id"
+            @click.prevent.stop="voidInvoice(inv)"
+          >
+            <template v-if="updatingId === inv.id">Anulando…</template>
+            <template v-else>⊘ Anular</template>
+          </button>
+        </div>
       </div>
     </section>
   </div>
@@ -125,7 +169,7 @@ function formatAmount(n: number | null, currency: string | null): string {
   background: var(--surface);
   border-radius: var(--radius);
 }
-.state.error { color: var(--ink-2); }
+.state.error { color: var(--ink-2); margin-bottom: 16px; }
 .empty-title {
   font-size: 18px;
   font-weight: 600;
@@ -148,9 +192,23 @@ function formatAmount(n: number | null, currency: string | null): string {
   border-radius: var(--radius);
   padding: 16px;
   color: inherit;
-  transition: transform 0.18s, border-color 0.15s;
+  transition: transform 0.18s, border-color 0.15s, opacity 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 .inv-card:hover { transform: translateY(-2px); border-color: var(--ink-4); }
+.inv-card.voided {
+  opacity: 0.65;
+  background: var(--surface);
+}
+.inv-card.voided:hover { opacity: 0.85; }
+
+.inv-card-link {
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
 .inv-card .thumb {
   aspect-ratio: 4 / 3;
   background: var(--surface);
@@ -170,12 +228,29 @@ function formatAmount(n: number | null, currency: string | null): string {
     linear-gradient(transparent calc(66% - 1px), rgba(0, 0, 0, 0.04) 66%, transparent 66%);
   transform: rotate(-1.5deg);
 }
+.inv-card.voided .thumb::before {
+  filter: grayscale(1);
+}
+.thumb-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  padding: 3px 7px;
+  border-radius: 4px;
+  z-index: 1;
+}
 .inv-card .name {
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.015em;
   line-height: 1.2;
 }
+.inv-card.voided .name { text-decoration: line-through; text-decoration-color: var(--ink-3); }
 .inv-card .row {
   display: flex;
   justify-content: space-between;
@@ -191,5 +266,42 @@ function formatAmount(n: number | null, currency: string | null): string {
   font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
   font-size: 13px;
   font-weight: 600;
+}
+.inv-card.voided .row .amt { text-decoration: line-through; color: var(--ink-3); }
+
+.void-btn {
+  margin-top: auto;
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.void-btn:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--ink-4);
+  color: var(--ink);
+}
+.void-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.void-tag {
+  margin-top: auto;
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--surface);
+  border: 1px dashed var(--line-2, var(--line));
+  border-radius: 6px;
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  text-align: center;
+  user-select: none;
 }
 </style>
