@@ -5,9 +5,6 @@ useHead({ title: 'scan-me — dashboard' })
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
-const dashData = [42, 28, 68, 38, 90, 72, 118, 86, 52, 104, 124, 92, 110, 76, 98, 86, 132, 108, 72, 94, 48, 68, 114, 82, 124, 60, 88, 116, 72, 104]
-const dashMax = Math.max(...dashData)
-
 function startOfWeekISO(): string {
   const now = new Date()
   const day = now.getDay()
@@ -23,6 +20,10 @@ const prevMonthStart = new Date(_now.getFullYear(), _now.getMonth() - 1, 1).toIS
 const prevMonthLabel = new Date(_now.getFullYear(), _now.getMonth() - 1, 1)
   .toLocaleDateString('en-US', { month: 'long' })
   .toUpperCase()
+
+const daysInCurMonth = new Date(_now.getFullYear(), _now.getMonth() + 1, 0).getDate()
+const curMonthLabel = _now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+const curDayOfMonth = _now.getDate()
 
 const { data: monthSpend } = await useAsyncData(
   'dashboard-month-spend',
@@ -69,6 +70,50 @@ const monthSpendDisplay = computed(() => {
     prevLabel: prevMonthLabel,
     delta,
   }
+})
+
+const { data: dailySpendRows } = await useAsyncData(
+  'dashboard-daily-spend',
+  async () => {
+    if (!user.value) return [] as { created_at: string; total: number | null }[]
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('created_at, total')
+      .gte('created_at', curMonthStart)
+      .lt('created_at', nextMonthStart)
+    if (error) return [] as { created_at: string; total: number | null }[]
+    return (data ?? []) as { created_at: string; total: number | null }[]
+  },
+  {
+    default: () => [] as { created_at: string; total: number | null }[],
+    watch: [user],
+  },
+)
+
+const dashData = computed<number[]>(() => {
+  const buckets = new Array(daysInCurMonth).fill(0) as number[]
+  for (const row of dailySpendRows.value ?? []) {
+    if (!row.created_at) continue
+    const d = new Date(row.created_at)
+    if (Number.isNaN(d.getTime())) continue
+    const idx = d.getDate() - 1
+    if (idx < 0 || idx >= buckets.length) continue
+    buckets[idx] = (buckets[idx] ?? 0) + (row.total ?? 0)
+  }
+  return buckets
+})
+
+const dashMax = computed(() => {
+  const max = Math.max(0, ...dashData.value)
+  return max === 0 ? 1 : max
+})
+
+const dashHasData = computed(() => dashData.value.some((v) => v > 0))
+
+const axisLabels = computed(() => {
+  const last = daysInCurMonth
+  const stops = [1, 5, 10, 15, 20, 25, last]
+  return stops.map((d) => String(d).padStart(2, '0'))
 })
 
 const { data: invoiceStats } = await useAsyncData(
@@ -204,20 +249,23 @@ const recent = computed(() =>
         <div class="card chart-card">
           <div class="card-title-row">
             <h3>Spend over time</h3>
-            <span class="chip outline mono">May 2026 ▾</span>
+            <span class="chip outline mono">{{ curMonthLabel }}</span>
           </div>
-          <div class="chart">
+          <div v-if="dashHasData" class="chart">
             <div
               v-for="(v, i) in dashData"
               :key="i"
               class="bar"
-              :class="{ muted: i > 12 }"
-              :style="{ height: `${(v / dashMax * 100).toFixed(1)}%` }"
-              :title="String(v)"
+              :class="{ muted: i + 1 > curDayOfMonth, empty: v === 0 }"
+              :style="{ height: `${((v / dashMax) * 100).toFixed(1)}%` }"
+              :title="`Day ${String(i + 1).padStart(2, '0')} · ${v.toFixed(2)}`"
             />
           </div>
+          <div v-else class="chart-empty">
+            No spend recorded this month yet.
+          </div>
           <div class="chart-axis">
-            <span>01</span><span>05</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span>
+            <span v-for="lbl in axisLabels" :key="lbl">{{ lbl }}</span>
           </div>
         </div>
 
@@ -417,7 +465,17 @@ const recent = computed(() =>
   transition: opacity 0.15s;
 }
 .chart .bar.muted { background: var(--surface-2); }
+.chart .bar.empty { min-height: 2px; background: var(--surface-2); opacity: 0.6; }
 .chart .bar:hover { opacity: 1; }
+.chart-empty {
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--ink-3);
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+}
 .chart-axis {
   display: flex;
   justify-content: space-between;
