@@ -24,6 +24,14 @@ const steps = [
     body: 'Group by collection, sub-collection, or person. Hogar › Luz. Tools › Software › Claude. Karen B. (client). It’s your taxonomy.'
   }
 ]
+
+const betaPerks = [
+  'Unlimited scans, people and collections',
+  'Full history with no expiration',
+  'Public share links and CSV export',
+  'Early access to every new feature we ship',
+  'A direct line to us — your feedback shapes the product'
+]
 </script>
 
 <template>
@@ -45,7 +53,7 @@ const steps = [
           <a href="#how" class="btn btn-ghost"><span>See it work</span></a>
         </div>
 
-        <p class="hero-tiny">No card required · Personal &amp; business plans</p>
+        <p class="hero-tiny">No card required · Unlimited free access during beta</p>
       </div>
 
       <!-- ============ PHONE ============ -->
@@ -273,6 +281,48 @@ const steps = [
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- ============ PRICING / BETA ============ -->
+    <section id="pricing" class="pricing">
+      <div class="section-eyebrow">Pricing</div>
+      <h2>Free while we&#8209;build.<br />Forever, if you join now.</h2>
+      <p class="pricing-sub">scan-me is in its testing phase. Everyone who signs up right now gets unlimited access at no cost — no card, no scan limits, no expiration.</p>
+
+      <article class="beta-card">
+        <header class="beta-head">
+          <span class="beta-badge">
+            <span class="pulse" />
+            <span>Beta phase · Unlimited free access</span>
+          </span>
+          <h3>You help us build it. We won't forget it.</h3>
+          <p class="beta-copy">
+            If we ever introduce paid plans, you'll hear from us first — well in advance — and your time helping us during the beta will be reflected in whatever offer we make. No surprise charges. No silent migrations. The early users carry the most weight in how this product is shaped.
+          </p>
+        </header>
+
+        <ul class="beta-features">
+          <li v-for="(perk, idx) in betaPerks" :key="idx">
+            <span class="feat-mark" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7.5 L6 10.5 L11 4.5" />
+              </svg>
+            </span>
+            <span>{{ perk }}</span>
+          </li>
+        </ul>
+
+        <NuxtLink to="/signup" class="btn btn-primary beta-cta">
+          Claim your free beta seat<span aria-hidden="true">→</span>
+        </NuxtLink>
+
+        <p class="beta-fineprint">No card required · Cancel any time · Your data is always exportable</p>
+      </article>
+
+      <p class="pricing-foot">
+        Have questions about the beta or want to bring your team in early?
+        <a href="mailto:hello@scan-me.app">Get in touch</a>.
+      </p>
     </section>
 
     <!-- ============ FINAL CTA ============ -->
@@ -1065,6 +1115,145 @@ section.final {
   gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+/* ============ PRICING ============ */
+section.pricing {
+  padding: clamp(80px, 12vw, 160px) var(--pad);
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+.pricing-sub {
+  margin: 24px auto 0;
+  max-width: 52ch;
+  color: var(--ink-2);
+  font-size: 17px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.beta-card {
+  position: relative;
+  margin: clamp(40px, 5vw, 64px) auto 0;
+  max-width: 640px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: clamp(28px, 4vw, 44px);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.beta-head {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.beta-badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  background: var(--surface);
+}
+.beta-badge .pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--ink) 45%, transparent);
+  animation: betapulse 1.8s ease-out infinite;
+}
+@keyframes betapulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ink) 45%, transparent); }
+  70%  { box-shadow: 0 0 0 8px color-mix(in srgb, var(--ink) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ink) 0%, transparent); }
+}
+.beta-head h3 {
+  margin: 0;
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.beta-copy {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.beta-features {
+  list-style: none;
+  margin: 0;
+  padding: 22px 0 4px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.beta-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+  color: var(--ink-2);
+}
+.feat-mark {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  margin-top: 1px;
+}
+
+.beta-cta {
+  justify-content: center;
+  width: 100%;
+  padding: 14px 22px;
+  font-size: 15px;
+}
+.beta-fineprint {
+  margin: -8px 0 0;
+  text-align: center;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.pricing-foot {
+  margin: clamp(48px, 6vw, 72px) auto 0;
+  max-width: 60ch;
+  font-size: 13px;
+  color: var(--ink-3);
+  letter-spacing: -0.005em;
+}
+.pricing-foot a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
 
 @media (prefers-reduced-motion: reduce) {
