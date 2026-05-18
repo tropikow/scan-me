@@ -32,6 +32,19 @@ const { data: invoiceCount, refresh: refreshInvoiceCount } = await useAsyncData(
   { default: () => 0, watch: [user] },
 )
 
+const { data: peopleCount } = await useAsyncData(
+  'sidebar-people-count',
+  async () => {
+    if (!user.value) return 0
+    const { count, error } = await supabase
+      .from('people')
+      .select('id', { count: 'exact', head: true })
+    if (error) return 0
+    return count ?? 0
+  },
+  { default: () => 0, watch: [user] },
+)
+
 async function signOut() {
   await supabase.auth.signOut()
   await router.push('/signin')
@@ -80,7 +93,7 @@ async function signOut() {
         <NuxtLink to="/app/people" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5"/><path d="M15 16c.5-1.5 2-2.5 4-2.5s3 1 3 2.5"/></svg>
           People
-          <span class="count">7</span>
+          <span v-if="peopleCount" class="count">{{ peopleCount }}</span>
         </NuxtLink>
       </nav>
 

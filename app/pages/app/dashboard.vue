@@ -126,6 +126,42 @@ const axisLabels = computed(() => {
   return stops.map((d) => String(d).padStart(2, '0'))
 })
 
+const { data: peopleStats } = await useAsyncData(
+  'dashboard-people-stats',
+  async () => {
+    if (!user.value) return { total: 0, topRole: null as string | null, topRoleCount: 0 }
+    const { data, error } = await supabase
+      .from('people')
+      .select('role')
+    if (error) return { total: 0, topRole: null as string | null, topRoleCount: 0 }
+    const rows = (data ?? []) as { role: string }[]
+    const counts = new Map<string, number>()
+    for (const r of rows) counts.set(r.role, (counts.get(r.role) ?? 0) + 1)
+    let topRole: string | null = null
+    let topRoleCount = 0
+    for (const [role, count] of counts) {
+      if (count > topRoleCount) {
+        topRole = role
+        topRoleCount = count
+      }
+    }
+    return { total: rows.length, topRole, topRoleCount }
+  },
+  {
+    default: () => ({ total: 0, topRole: null as string | null, topRoleCount: 0 }),
+    watch: [user],
+  },
+)
+
+const peopleKpi = computed(() => {
+  const total = peopleStats.value?.total ?? 0
+  const topRole = peopleStats.value?.topRole
+  const topRoleCount = peopleStats.value?.topRoleCount ?? 0
+  if (total === 0) return { value: '0', sub: 'None tracked' }
+  const sub = topRole ? `${topRoleCount} ${topRole.toLowerCase()}` : `${total} tracked`
+  return { value: String(total), sub }
+})
+
 const { data: invoiceStats } = await useAsyncData(
   'dashboard-invoice-stats',
   async () => {
@@ -176,7 +212,7 @@ const kpis = computed(() => [
         ? `+ ${invoiceStats.value?.thisWeek} this week`
         : 'No new this week',
   },
-  { lbl: 'PEOPLE', value: '7', sub: '4 active' },
+  { lbl: 'PEOPLE', value: peopleKpi.value.value, sub: peopleKpi.value.sub },
   { lbl: 'TOP CATEGORY', value: 'Hogar', valueSmall: true, sub: '€ 514 · 40%' },
   { lbl: 'AVG / INVOICE', value: avgInvoice.value.value, sub: avgInvoice.value.sub },
 ])
