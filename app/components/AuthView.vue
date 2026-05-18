@@ -107,9 +107,9 @@ function resetConfirmationView() {
 
 <template>
   <div class="auth-root">
-    <header class="auth-top">
-      <NuxtLink to="/" class="logo">
-        <span class="logo-dot" aria-hidden="true" />
+    <header class="auth-top">      
+      <NuxtLink to="/app/dashboard" class="sb-logo">
+        <img src="~/assets/images/logo-1.png" alt="" class="sb-logo-img" />
         <span>scan-me</span>
       </NuxtLink>
       <NuxtLink to="/" class="back">← Back to home</NuxtLink>
@@ -330,6 +330,20 @@ function resetConfirmationView() {
   inset: 4px;
   border-radius: 50%;
   border: 1.5px solid var(--bg);
+}
+.sb-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-size: 15px;
+  color: var(--ink);
+}
+.sb-logo-img {
+  height: 22px;
+  width: auto;
+  display: block;
 }
 .auth-top .back {
   color: var(--ink-3);
