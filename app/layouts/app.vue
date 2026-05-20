@@ -145,9 +145,19 @@ const formatAmount = (n: number | null, currency: string | null) => {
   return `${sym} ${n.toFixed(2)}`.trim()
 }
 
-// Close the dropdown when the route changes (user clicked a result, etc.)
+const mobileNavOpen = ref(false)
+
+function openMobileNav() {
+  mobileNavOpen.value = true
+}
+function closeMobileNav() {
+  mobileNavOpen.value = false
+}
+
+// Close the dropdown / drawer when the route changes (user clicked a result, etc.)
 watch(() => router.currentRoute.value.fullPath, () => {
   showResults.value = false
+  mobileNavOpen.value = false
 })
 
 onMounted(() => {
@@ -165,14 +175,33 @@ async function signOut() {
 </script>
 
 <template>
-  <div class="shell">
-    <aside class="sidebar">
+  <div class="shell" :class="{ 'nav-open': mobileNavOpen }">
+    <button
+      type="button"
+      class="mobile-menu-btn"
+      aria-label="Open menu"
+      @click="openMobileNav"
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+
+    <div
+      v-if="mobileNavOpen"
+      class="mobile-overlay"
+      aria-hidden="true"
+      @click="closeMobileNav"
+    />
+
+    <aside class="sidebar" :class="{ open: mobileNavOpen }">
       <div class="sb-head">
         <NuxtLink to="/app/dashboard" class="sb-logo">
           <img src="~/assets/images/logo-1.png" alt="" class="sb-logo-img" />
           <span>scan-me</span>
         </NuxtLink>
-        <button class="btn-hifi btn-icon" title="Notifications" aria-label="Notifications">
+        <button class="btn-hifi btn-icon sb-close" title="Close menu" aria-label="Close menu" @click="closeMobileNav">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+        <button class="btn-hifi btn-icon sb-notif" title="Notifications" aria-label="Notifications">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9Z"/><path d="M9 17a3 3 0 0 0 6 0"/></svg>
         </button>
       </div>
@@ -299,10 +328,6 @@ async function signOut() {
   color: var(--ink);
   font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, 'Helvetica Neue', sans-serif;
 }
-@media (max-width: 880px) {
-  .shell { grid-template-columns: 1fr; }
-  .sidebar { display: none !important; }
-}
 
 .sidebar {
   border-right: 1px solid var(--line);
@@ -314,6 +339,64 @@ async function signOut() {
   position: sticky;
   top: 0;
   height: 100vh;
+}
+
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 30;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+.mobile-menu-btn:hover { background: var(--surface); }
+
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 40;
+  animation: overlay-in 0.18s ease-out;
+}
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.sb-close { display: none; }
+
+@media (max-width: 880px) {
+  .shell { grid-template-columns: 1fr; }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(86vw, 300px);
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease-out;
+    z-index: 50;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.08);
+    overflow-y: auto;
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  .mobile-menu-btn { display: inline-flex; }
+  .mobile-overlay { display: block; }
+  .sb-close { display: inline-flex; }
+  .sb-notif { display: none; }
 }
 
 .sb-head {
@@ -569,5 +652,8 @@ async function signOut() {
 }
 .sb-user .gear { margin-left: auto; color: var(--ink-3); }
 
-.main { min-width: 0; }
+.main { min-width: 0; overflow-x: hidden; }
+@media (max-width: 880px) {
+  .main { padding-top: 0; }
+}
 </style>
