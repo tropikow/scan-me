@@ -100,8 +100,10 @@ const collectionOptions = computed<{ id: string; label: string }[]>(() => {
 })
 
 const dragOver = ref(false)
-const inputRef = ref<HTMLInputElement | null>(null)
-function pickFile() { inputRef.value?.click() }
+const cameraInput = ref<HTMLInputElement | null>(null)
+const galleryInput = ref<HTMLInputElement | null>(null)
+function pickCamera() { cameraInput.value?.click() }
+function pickGallery() { galleryInput.value?.click() }
 
 function onDrop(e: DragEvent) {
   e.preventDefault()
@@ -281,8 +283,9 @@ onBeforeUnmount(() => {
           <span class="who">{{ share?.person.name }}</span>
         </h1>
         <p class="lede">
-          Drop the photo of your receipt below. We'll extract the details and
-          file it directly with {{ share?.person.name }} — no account needed.
+          Take a photo of your receipt or upload an image. We'll extract the
+          details and file it directly with {{ share?.person.name }} — no
+          account needed.
         </p>
       </header>
 
@@ -291,27 +294,55 @@ onBeforeUnmount(() => {
         <div
           class="upload-zone"
           :class="{ over: dragOver }"
-          @click="pickFile"
           @dragover.prevent="dragOver = true"
           @dragleave="dragOver = false"
           @drop="onDrop"
         >
           <input
-            ref="inputRef"
+            ref="cameraInput"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            class="upload-input"
+            @change="onChange"
+          />
+          <input
+            ref="galleryInput"
             type="file"
             accept="image/jpeg,image/png,image/webp"
             class="upload-input"
             @change="onChange"
           />
+
           <div class="upload-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
+              <path d="M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z" />
+              <circle cx="12" cy="13" r="4" />
             </svg>
           </div>
-          <div class="upload-title">Drop a receipt or invoice</div>
-          <div class="upload-hint">or click to choose · JPEG, PNG, WebP · up to 10 MB</div>
+          <div class="upload-title">Send a receipt</div>
+          <div class="upload-hint">Take a photo or upload an image · JPEG, PNG, WebP · up to 10 MB</div>
+
+          <div class="upload-cta">
+            <button type="button" class="btn-hifi btn-primary upload-btn" @click="pickCamera">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z" />
+                <circle cx="12" cy="13" r="3.5" />
+              </svg>
+              Take a photo
+            </button>
+            <button type="button" class="btn-hifi upload-btn" @click="pickGallery">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Choose file
+            </button>
+          </div>
+
+          <p class="upload-drophint mono">OR DROP A FILE HERE</p>
+
           <div v-if="errorMsg" class="upload-error">{{ errorMsg }}</div>
         </div>
       </div>
@@ -490,9 +521,8 @@ onBeforeUnmount(() => {
 .upload-zone {
   border: 1.5px dashed var(--line-2, var(--line));
   border-radius: var(--radius);
-  padding: 64px 32px;
+  padding: 56px 24px;
   text-align: center;
-  cursor: pointer;
   background: var(--surface);
   transition: border-color 0.15s, background 0.15s;
   display: flex;
@@ -500,13 +530,12 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
 }
-.upload-zone:hover,
 .upload-zone.over {
   border-color: var(--ink);
   background: var(--bg);
 }
 .upload-input { display: none; }
-.upload-icon { width: 48px; height: 48px; color: var(--ink-3); margin-bottom: 4px; }
+.upload-icon { width: 44px; height: 44px; color: var(--ink-3); margin-bottom: 4px; }
 .upload-icon svg { width: 100%; height: 100%; }
 .upload-title {
   font-size: 18px;
@@ -518,6 +547,25 @@ onBeforeUnmount(() => {
   font-size: 13px;
   color: var(--ink-3);
   letter-spacing: -0.005em;
+  max-width: 36ch;
+}
+.upload-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+}
+.upload-btn {
+  padding: 11px 18px;
+  font-size: 14px;
+  min-width: 160px;
+}
+.upload-drophint {
+  margin: 12px 0 0;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--ink-4);
 }
 .upload-error {
   margin-top: 12px;
@@ -526,6 +574,18 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   font-size: 13px;
   color: var(--ink);
+}
+
+/* On touch/small screens drag-and-drop isn't a thing — hide the hint and
+   give the buttons full width so they're thumb-friendly. */
+@media (max-width: 640px) {
+  .upload-zone { padding: 40px 18px; }
+  .upload-cta { flex-direction: column; width: 100%; max-width: 320px; }
+  .upload-btn { width: 100%; min-width: 0; }
+  .upload-drophint { display: none; }
+}
+@media (hover: none) and (pointer: coarse) {
+  .upload-drophint { display: none; }
 }
 
 /* PROCESSING */
