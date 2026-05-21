@@ -26,6 +26,170 @@ const { data, pending, error, refresh } = await useAsyncData('invoices-list', as
   return (data ?? []) as InvoiceRow[]
 })
 
+// ─── Export (CSV) ─────────────────────────────────────────────────────────
+type PersonOpt = { id: string; name: string }
+
+const exportOpen = ref(false)
+const exportLoading = ref(false)
+const exportError = ref<string | null>(null)
+const filterFrom = ref('')
+const filterTo = ref('')
+const filterPersonId = ref('')
+const filterVendor = ref('')
+const peopleOpts = ref<PersonOpt[]>([])
+const vendorOpts = ref<string[]>([])
+const optsLoaded = ref(false)
+
+async function loadExportOptions() {
+  if (optsLoaded.value) return
+  const [peopleRes, vendorRes] = await Promise.all([
+    supabase.from('people').select('id, name').order('name', { ascending: true }),
+    supabase
+      .from('invoices')
+      .select('vendor')
+      .not('vendor', 'is', null)
+      .order('vendor', { ascending: true }),
+  ])
+  peopleOpts.value = (peopleRes.error ? [] : (peopleRes.data ?? [])) as PersonOpt[]
+  const seen = new Set<string>()
+  vendorOpts.value = ((vendorRes.error ? [] : (vendorRes.data ?? [])) as { vendor: string | null }[])
+    .map((r) => (r.vendor ?? '').trim())
+    .filter((v) => {
+      if (!v || seen.has(v)) return false
+      seen.add(v)
+      return true
+    })
+  optsLoaded.value = true
+}
+
+async function openExport() {
+  exportError.value = null
+  exportOpen.value = true
+  await loadExportOptions()
+}
+function closeExport() {
+  if (exportLoading.value) return
+  exportOpen.value = false
+}
+
+// RFC 4180 escaping: wrap in quotes, double any internal quotes.
+function csvCell(v: unknown): string {
+  if (v == null) return ''
+  const s = String(v)
+  if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`
+  return s
+}
+function csvRow(cells: unknown[]): string {
+  return cells.map(csvCell).join(',')
+}
+
+type PersonRel = { name: string | null } | { name: string | null }[] | null
+type ExportInvoice = {
+  vendor: string | null
+  invoice_number: string | null
+  invoice_date: string | null
+  created_at: string
+  currency: string | null
+  subtotal: number | null
+  tax: number | null
+  total: number | null
+  notes: string | null
+  voided_at: string | null
+  people: PersonRel
+}
+function personName(rel: PersonRel): string {
+  if (!rel) return ''
+  const row = Array.isArray(rel) ? rel[0] : rel
+  return row?.name ?? ''
+}
+
+async function runExport() {
+  exportLoading.value = true
+  exportError.value = null
+  try {
+    let q = supabase
+      .from('invoices')
+      .select(
+        'vendor, invoice_number, invoice_date, created_at, currency, subtotal, tax, total, notes, voided_at, people:person_id(name)',
+      )
+      .order('created_at', { ascending: false })
+
+    // Date range is applied on created_at (scan time) to match the rest
+    // of the app's "this month" / dashboard convention. invoice_date is
+    // exported as a separate column so the user can still see vendor dates.
+    if (filterFrom.value) q = q.gte('created_at', `${filterFrom.value}T00:00:00Z`)
+    if (filterTo.value) q = q.lte('created_at', `${filterTo.value}T23:59:59Z`)
+    if (filterPersonId.value) q = q.eq('person_id', filterPersonId.value)
+    if (filterVendor.value) q = q.eq('vendor', filterVendor.value)
+
+    const { data: rows, error: err } = await q
+    if (err) throw err
+    const list = (rows ?? []) as unknown as ExportInvoice[]
+
+    if (list.length === 0) {
+      exportError.value = 'No invoices match those filters.'
+      return
+    }
+
+    const header = [
+      'vendor',
+      'invoice_number',
+      'invoice_date',
+      'scanned_at',
+      'currency',
+      'subtotal',
+      'tax',
+      'total',
+      'person',
+      'notes',
+      'voided',
+    ]
+    const lines = [csvRow(header)]
+    for (const r of list) {
+      lines.push(
+        csvRow([
+          r.vendor ?? '',
+          r.invoice_number ?? '',
+          r.invoice_date ?? '',
+          r.created_at.slice(0, 10),
+          r.currency ?? '',
+          r.subtotal ?? '',
+          r.tax ?? '',
+          r.total ?? '',
+          personName(r.people),
+          r.notes ?? '',
+          r.voided_at ? 'yes' : 'no',
+        ]),
+      )
+    }
+
+    // UTF-8 BOM so Excel on Windows opens accents correctly.
+    const csv = '﻿' + lines.join('\r\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const today = new Date().toISOString().slice(0, 10)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `scan-me-invoices-${today}.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+
+    exportOpen.value = false
+  } catch (e) {
+    exportError.value = e instanceof Error ? e.message : 'Export failed.'
+  } finally {
+    exportLoading.value = false
+  }
+}
+
+function onExportKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && exportOpen.value) closeExport()
+}
+onMounted(() => document.addEventListener('keydown', onExportKeydown))
+onBeforeUnmount(() => document.removeEventListener('keydown', onExportKeydown))
+
 function formatDate(iso: string | null, fallback: string): string {
   const src = iso || fallback
   const d = new Date(src)
@@ -71,6 +235,10 @@ async function voidInvoice(inv: InvoiceRow) {
       <h1>Invoices</h1>
       <div class="actions">
         <button class="btn-hifi btn-ghost btn-sm" @click="refresh()">Refresh</button>
+        <button class="btn-hifi btn-sm" @click="openExport">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg>
+          Export
+        </button>
         <NuxtLink to="/app/scan" class="btn-hifi btn-primary btn-sm">+ New scan</NuxtLink>
       </div>
     </div>
@@ -127,6 +295,72 @@ async function voidInvoice(inv: InvoiceRow) {
         </div>
       </div>
     </section>
+
+    <Teleport to="body">
+      <div v-if="exportOpen" class="export-overlay" @click.self="closeExport">
+        <div class="export-modal" role="dialog" aria-modal="true" aria-labelledby="export-title">
+          <header class="export-head">
+            <div>
+              <div class="export-eyebrow mono">EXPORT</div>
+              <h2 id="export-title">Download invoices</h2>
+            </div>
+            <button
+              type="button"
+              class="export-close"
+              aria-label="Close"
+              :disabled="exportLoading"
+              @click="closeExport"
+            >×</button>
+          </header>
+
+          <form class="export-body" @submit.prevent="runExport">
+            <div class="export-field">
+              <label class="export-label mono">DATE RANGE (SCANNED)</label>
+              <div class="export-range">
+                <input v-model="filterFrom" type="date" class="export-input" />
+                <span class="export-sep">→</span>
+                <input v-model="filterTo" type="date" class="export-input" />
+              </div>
+            </div>
+
+            <div class="export-field">
+              <label class="export-label mono" for="export-person">PERSON</label>
+              <select id="export-person" v-model="filterPersonId" class="export-input">
+                <option value="">All people</option>
+                <option v-for="p in peopleOpts" :key="p.id" :value="p.id">{{ p.name }}</option>
+              </select>
+            </div>
+
+            <div class="export-field">
+              <label class="export-label mono" for="export-vendor">MERCHANT</label>
+              <select id="export-vendor" v-model="filterVendor" class="export-input">
+                <option value="">All merchants</option>
+                <option v-for="v in vendorOpts" :key="v" :value="v">{{ v }}</option>
+              </select>
+            </div>
+
+            <p v-if="exportError" class="export-err">{{ exportError }}</p>
+
+            <footer class="export-foot">
+              <button
+                type="button"
+                class="btn-hifi btn-ghost btn-sm"
+                :disabled="exportLoading"
+                @click="closeExport"
+              >Cancel</button>
+              <button
+                type="submit"
+                class="btn-hifi btn-primary btn-sm"
+                :disabled="exportLoading"
+              >
+                <template v-if="exportLoading">Generating…</template>
+                <template v-else>Download .csv</template>
+              </button>
+            </footer>
+          </form>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -303,5 +537,141 @@ async function voidInvoice(inv: InvoiceRow) {
   color: var(--ink-3);
   text-align: center;
   user-select: none;
+}
+</style>
+
+<style>
+/* Unscoped: teleported to <body>, scoped styles wouldn't reach it. */
+.export-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  animation: export-fade 0.18s ease-out;
+}
+@keyframes export-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.export-modal {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, 'Helvetica Neue', sans-serif;
+  color: var(--ink);
+  animation: export-pop 0.18s ease-out;
+}
+@keyframes export-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+.export-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px 22px 14px;
+  border-bottom: 1px solid var(--line-2);
+}
+.export-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+  margin-bottom: 4px;
+}
+.export-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.export-close {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink-3);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.export-close:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--ink-4);
+}
+.export-close:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.export-body {
+  padding: 18px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.export-field { display: flex; flex-direction: column; gap: 6px; }
+.export-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+}
+.export-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  outline: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.export-input:hover { background: var(--surface); }
+.export-input:focus { background: var(--bg); border-color: var(--ink); }
+.export-range {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.export-range .export-input { flex: 1; min-width: 0; }
+.export-sep {
+  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.export-err {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--accent-error, #E8B4B4);
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.export-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .export-overlay { padding: 12px; align-items: flex-end; }
+  .export-modal { max-width: 100%; }
+  .export-range { flex-direction: column; align-items: stretch; }
+  .export-sep { display: none; }
 }
 </style>

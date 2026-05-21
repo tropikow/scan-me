@@ -41,7 +41,7 @@ const betaPerks = [
       <div class="hero-inner">
         <span class="eyebrow">
           <span class="pulse" />
-          <span>Now in private beta</span>
+          <span>Now in beta</span>
         </span>
 
         <h1 class="hero-title">scan&#8209;me<span class="dot">.</span></h1>
