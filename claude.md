@@ -1,76 +1,66 @@
-# CLAUDE.md
+# Proyecto: scan-me
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Que hace la app 
+SaaS para que un usuario suba facturas físicas (foto), un OCR extrae ítems vía endpoint, el usuario confirma o edita, y la app guarda una 
+"factura virtual" con la imagen original como respaldo. El dashboard muestra: en qué gasta, a quién destina los gastos, y evolución temporal.
 
+## Conceptos de dominio
+- **Factura virtual**: registro estructurado generado desde una factura 
+  física vía OCR. Siempre conserva referencia a la imagen original.
+- **Colección**: agrupación de gastos creada por el usuario (ej: "Casa").
+- **Subcategoría**: nivel dentro de una colección (ej: "Casa > Luz").
+- **Persona**: persona registrada en la plataforma a la que se le 
+  puede asignar un gasto para tracking (ej: "Tecnología → Ramón").
+
+## Stack 
+- pnpm (gestor de paquetes)
+- Nuxt 4 (framework)
+- groq (OCR)
+- nuxt/supabase (auth + DB + storage)
+
+## Stack NO USADO 
+- No Pinia.
+- No axios: fetch nativo o `$fetch` de Nuxt.
+
+## Estructura 
+Estructura default de Nuxt 4. Convenciones específicas:
+- Lógica de negocio en `composables/`, no en componentes.
+
+## Convenciones detalladas
 @.claude/security.md
-@.claude/design.md
 
-## Commands
+## Comandos
+- `pnpm dev` — desarrollo local
+- `pnpm build` — build de producción
+- `pnpm typecheck` — verificación de tipos TypeScript
+- `pnpm lint` — ESLint
 
-Package manager: **pnpm** (lockfile committed). Node scripts via Nuxt 4.
+## Reglas de comportamiento
+1. **IMPORTANT**: si los requerimientos del usuario son ambiguos o 
+   incompletos, NO ejecutes nada. Preguntá explícitamente qué falta 
+   antes de actuar.
 
-- `pnpm dev` — start the Nuxt dev server (Nitro + Vite).
-- `pnpm build` — production build (`.output/`).
-- `pnpm preview` — serve the production build locally.
-- `pnpm generate` — static prerender (not the primary deploy target; SSR routes use Nitro).
-- `pnpm install` runs `nuxt prepare` (postinstall) to regenerate `.nuxt/` types — re-run after changing `nuxt.config.ts` or adding modules so TS types resolve.
+2. **YOU MUST**: si una petición rompe alguna convención de 
+   `security.md`, DETEN la edición, indicá exactamente 
+   qué convención se rompería y qué consecuencias trae, y pide
+   confirmación explícita antes de proceder.
 
-There is no test runner, linter, or formatter wired up in `package.json`. Don't invent commands for them; if quality gates are needed, add them deliberately.
+3. Después de cualquier cambio de código, corre `pnpm typecheck` y 
+   `pnpm lint`. Si hay errores, arreglalos antes de dar la tarea 
+   por terminada. Sin esto, el despliegue a producción falla.
 
-## Required env (`.env`, see `.env.example`)
+4. Respuestas y resúmenes directos al grano. Sin preámbulos, sin 
+   "claro!", sin explicar lo obvio. Si una explicación no aporta 
+   información accionable, omitila.
 
-- `SUPABASE_URL`, `SUPABASE_KEY` — anon key, public, used by `@nuxtjs/supabase`.
-- `GROQ_API_KEY` — server-side only (`runtimeConfig.groqApiKey`), used for OCR.
-- `SUPABASE_SERVICE_ROLE_KEY` — server-side only (`runtimeConfig.supabaseServiceRoleKey`). **Only** consumed by `server/api/public/share/**` routes to write on behalf of the share-link owner when the visitor is anonymous. Never expose to the client and never use it from any other handler without an equivalent justification.
+5. No agregues comentarios en el código a menos que la lógica sea 
+   genuinamente no obvia. Nombres claros sustituyen comentarios.
 
-## Architecture
+6. Convenciones de código:
+   - Lógica de negocio en composables, no en componentes.
+   - DRY: si copiás código dos veces, extraelo a una función o composable.
+   - Funciones cortas, una responsabilidad cada una.
+   - Manejo explícito de errores de Supabase: nunca asumas que una 
+     query funcionó sin revisar `error`.
 
-Nuxt 4 app (file-based routing under `app/`) backed by Supabase (Postgres + Auth + Storage) with Groq vision models doing the OCR. Two distinct entry surfaces share the database:
-
-1. **Authenticated app** — `/app/**` routes, guarded by `@nuxtjs/supabase` (`redirectOptions.include: ['/app/**']`, login at `/signin`, callback `/confirm`). Uses the user's JWT and is fully constrained by RLS.
-2. **Public share** — `/p/[token]` page + `/api/public/share/[token]/**` server endpoints. An unauthenticated visitor scans a receipt that gets persisted **as the share-link owner**. Server routes resolve the UUID `share_token` to a `person` via the service-role key (RLS would block them otherwise).
-
-### Routing & layouts
-
-- `app/layouts/default.vue` — marketing/auth chrome.
-- `app/layouts/landing.vue` — landing page.
-- `app/layouts/app.vue` — the authenticated shell (sidebar + topbar + mobile drawer). Pages under `app/pages/app/**` consume it.
-- Auth pages (`signin.vue`, `signup.vue`, `confirm.vue`) are thin wrappers over `app/components/AuthView.vue`.
-
-### Server API (`server/api/`)
-
-- `POST /api/scan` — authenticated. Multipart `file` → Groq vision (`meta-llama/llama-4-scout-17b-16e-instruct`) → returns the parsed JSON. Pure OCR, does not write.
-- `POST /api/invoices` — authenticated. Multipart `file` + JSON `payload`. Uploads the image to the `receipts` Storage bucket at `{user_id}/{invoice_id}.{ext}`, then inserts the invoice row + line items. Rolls back the storage object on insert failure.
-- `GET  /api/public/share/[token]` — public. Resolves token → `{ person, collections }` for the owner.
-- `POST /api/public/share/[token]/scan` — public. Token-gated OCR.
-- `POST /api/public/share/[token]/invoice` — public. Token-gated invoice write on the owner's behalf.
-
-### Database (`supabase/migrations/`, ordered)
-
-Apply via `supabase db push` or paste into the SQL editor. Migrations are idempotent — `if not exists`, `drop policy if exists`, etc. Add new ones as `NNNN_short_name.sql`, never edit a shipped one.
-
-Core tables (all RLS-enabled, owner-only policies via `auth.uid() = user_id`):
-- `invoices` + `invoice_items` (0001) — the scan output. `image_path` references the `receipts` private storage bucket.
-- `collections` + `invoice_collections` (0003/0004) — user-defined hierarchical taxonomy with cycle-prevention trigger. View `v_collection_stats` is `security_invoker = true`.
-- `invoices.voided_at` (0005/0006) — soft-delete with an immutability trigger; once voided, the row can't be mutated.
-- `people` (0007) + `invoices.person_id` (0008) — track who a receipt belongs to. `user_id` defaults to `auth.uid()` so clients can omit it.
-- `people.share_token` UUID (0009) — drives the `/p/[token]` flow. No public select policy; only service-role endpoints read it.
-- `profiles` (0010) — `plan` (`beta` | `free` | `pro`) auto-created via `auth.users` insert trigger. **No client write policy** — plan transitions go through service-role server routes.
-
-### Storage
-
-- Bucket `receipts` is private. Object path convention: `{user_id}/{invoice_id}.{ext}`. RLS policies on `storage.objects` enforce that the first folder segment equals `auth.uid()`.
-- The SSR Supabase client does **not** reliably forward the user's JWT to Storage calls. When uploading from a server route, build a dedicated `createClient(url, anon, { global: { headers: { Authorization: 'Bearer ' + access_token } } })` — see `server/api/invoices/index.post.ts:138`.
-
-### Supabase server quirks (Nuxt module v2.0.x)
-
-- `serverSupabaseUser(event)` returns JWT **claims**, not a `User` object. The user ID is `claims.sub`, not `claims.id`. Example: `server/api/invoices/index.post.ts:92`.
-- For inserts owned by the current user, prefer letting Postgres fill `user_id` via a column `default auth.uid()` (see `people`) — this avoids `42501` permission errors caused by mismatched client-side IDs under RLS.
-
-### Design tokens
-
-`app/assets/css/main.css` exposes two layers of CSS variables on `:root`:
-- **App tokens** (`--bg-base`, `--fg-primary`, `--accent-action`, the responsive `--font-*` clamps, `--radius-sm|md|lg`, `--transition`) — these are the ones enforced by `.claude/design.md`. Use them in the authenticated app.
-- **Hi-fi landing tokens** (`--ink`, `--surface-2`, `--line`, `--accent`, `--pad`, `--max`, `--radius`, `--hairline`) — scoped to the marketing/landing surface only. Do not mix the two systems inside a single component.
-
-Shared atom classes (e.g. `.btn-hifi`) live alongside the tokens — extend rather than re-defining.
+7. **NEVER** commitees archivos `.env` ni claves de Supabase.
