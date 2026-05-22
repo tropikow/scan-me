@@ -1,0 +1,72 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(git push *)",
+      "Bash(git commit *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm remove *)",
+      "Bash(supabase migration new *)",
+      "Bash(supabase db push *)"
+    ],
+    "allow": [
+      "Read(./**)",
+      "Edit(./app/**)",
+      "Edit(./server/**)",
+      "Edit(./public/**)",
+      "Edit(./.env.example)",
+      "Edit(./nuxt.config.ts)",
+      "Edit(./*.md)",
+      "Edit(./.gitignore)",
+      "Edit(./supabase/**)",
+      "Edit(./supabase/**)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm dev *)",
+      "Bash(pnpm build)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm format)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git branch)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git restore *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(find *)",
+      "Bash(echo *)",
+      "Bash(mkdir *)",
+      "Bash(touch *)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Read(./env)",
+      "Read(./.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Bash(rm -rf *)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~/*)",
+      "Bash(rm chmod 777 *)",
+      "Bash(sudo *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -fd *)",
+      "Bash(git branch -D *)",
+      "Bash(supabase db reset *)",
+      "Bash(supabase db projects delete *)",
+      "Bash(npm publish *)",
+      "Bash(pnpm publish *)"
+    ]
+  },
+  "env": {
+    "NODE_ENV": "development",
+    "NUXT_PUBLIC_APP_NAME": "scan-me"
+  }
+}
