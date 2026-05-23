@@ -245,8 +245,8 @@ const monthLabel = new Date()
     <div class="topbar">
       <h1>Collections</h1>
       <div class="actions">
-        <button class="btn-hifi btn-ghost btn-sm">Sort ▾</button>
-        <button class="btn-hifi btn-primary btn-sm" @click="createCollection(null)">
+        <button class="btn btn-ghost btn-sm">Sort ▾</button>
+        <button class="btn btn-primary btn-sm" @click="createCollection(null)">
           + New collection
         </button>
       </div>
@@ -257,7 +257,7 @@ const monthLabel = new Date()
         <p>You haven't created any collections yet.</p>
         <button
           type="button"
-          class="btn-hifi btn-primary btn-sm"
+          class="btn btn-primary btn-sm"
           @click="createCollection(null)"
         >
           + Create your first collection
@@ -298,7 +298,7 @@ const monthLabel = new Date()
               <div class="crumb">{{ activeBreadcrumb }}</div>
               <button
                 type="button"
-                class="btn-hifi btn-ghost btn-sm"
+                class="btn btn-ghost btn-sm"
                 @click="createCollection(activeNode.id)"
               >
                 + Sub
@@ -341,14 +341,14 @@ const monthLabel = new Date()
 <style scoped>
 .topbar {
   padding: 20px 36px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-mist);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  background: color-mix(in srgb, var(--color-snow) 80%, transparent);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   z-index: 5;
@@ -359,15 +359,15 @@ const monthLabel = new Date()
 .route { padding: 36px; }
 
 .empty-state {
-  background: var(--surface);
-  border-radius: var(--radius);
+  background: var(--color-fog);
+  border-radius: var(--radius-lg);
   padding: 48px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  color: var(--ink-2);
+  color: var(--color-slate);
 }
 .empty-state p { margin: 0; font-size: 14px; }
 
@@ -380,8 +380,8 @@ const monthLabel = new Date()
 @media (max-width: 1000px) { .coll-grid { grid-template-columns: 1fr; } }
 
 .coll-tree {
-  background: var(--surface);
-  border-radius: var(--radius);
+  background: var(--color-fog);
+  border-radius: var(--radius-lg);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -394,56 +394,56 @@ const monthLabel = new Date()
   padding: 4px 10px 12px;
 }
 .coll-tree .hdr .lb {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.1em;
 }
 .coll-tree .hdr button {
   background: transparent;
   border: none;
-  color: var(--ink-2);
+  color: var(--color-slate);
   font-size: 16px;
   padding: 4px;
   line-height: 1;
   cursor: pointer;
 }
-.coll-tree .hdr button:hover { color: var(--ink); }
+.coll-tree .hdr button:hover { color: var(--color-ink); }
 
 .ti {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 6px;
+  gap: var(--space-2);
+  padding: 7px var(--space-3);
+  border-radius: var(--radius-sm);
   font-size: 13.5px;
-  color: var(--ink-2);
+  color: var(--color-slate);
   cursor: pointer;
-  font-weight: 450;
-  letter-spacing: -0.005em;
+  font-weight: 500;
+  letter-spacing: -0.04px;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   font-family: inherit;
   text-align: left;
   width: 100%;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.ti:hover { background: var(--bg); color: var(--ink); }
+.ti:hover { background: var(--color-snow); color: var(--color-ink); }
 .ti.active {
-  background: var(--bg);
-  color: var(--ink);
-  font-weight: 500;
-  box-shadow: 0 0 0 1px var(--line-2);
+  background: var(--color-snow);
+  color: var(--color-ink);
+  font-weight: 600;
+  border-color: var(--color-mist);
 }
-.ti.indent { color: var(--ink-3); font-size: 13px; }
-.ti.indent.active { color: var(--ink); }
+.ti.indent { color: var(--color-graphite); font-size: 13px; }
+.ti.indent.active { color: var(--color-ink); }
 .ti .ct {
   margin-left: auto;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
-.ti.active .ct { color: var(--ink-2); }
+.ti.active .ct { color: var(--color-slate); }
 .ti .caret { width: 12px; opacity: 0.5; text-align: center; }
 .ti .caret.clickable { cursor: pointer; opacity: 0.8; }
 .ti .caret.clickable:hover { opacity: 1; }
@@ -457,9 +457,9 @@ const monthLabel = new Date()
   margin-bottom: 8px;
 }
 .coll-content .crumb {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -471,20 +471,20 @@ const monthLabel = new Date()
 }
 .coll-content .meta {
   margin-top: 6px;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 
 .state-msg {
   margin-top: 24px;
   padding: 32px;
-  background: var(--surface);
-  border-radius: var(--radius);
+  background: var(--color-fog);
+  border-radius: var(--radius-lg);
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   text-align: center;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 
 .inv-cards {
@@ -494,17 +494,17 @@ const monthLabel = new Date()
   gap: 16px;
 }
 .inv-card {
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
   padding: 16px;
   color: inherit;
   transition: transform 0.18s, border-color 0.15s;
 }
-.inv-card:hover { transform: translateY(-2px); border-color: var(--ink-4); }
+.inv-card:hover { transform: translateY(-2px); border-color: var(--color-mist); }
 .inv-card .thumb {
   aspect-ratio: 4 / 3;
-  background: var(--surface);
+  background: var(--color-fog);
   border-radius: 6px;
   margin-bottom: 12px;
   position: relative;
@@ -534,12 +534,12 @@ const monthLabel = new Date()
   margin-top: 6px;
 }
 .inv-card .row .date {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 .inv-card .row .amt {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
 }

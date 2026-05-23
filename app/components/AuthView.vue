@@ -293,16 +293,16 @@ function resetConfirmationView() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, 'Helvetica Neue', sans-serif;
+  background: var(--color-snow);
+  color: var(--color-ink);
+  font-family: var(--font-text);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 /* ============ HEADER ============ */
 .auth-top {
-  padding: 22px var(--pad);
+  padding: var(--space-6);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -310,35 +310,20 @@ function resetConfirmationView() {
 .auth-top .logo {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--space-2);
   font-weight: 600;
   letter-spacing: -0.02em;
-  font-size: 16px;
-  color: var(--ink);
-}
-.auth-top .logo-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--ink);
-  display: inline-block;
-  position: relative;
-}
-.auth-top .logo-dot::after {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border-radius: 50%;
-  border: 1.5px solid var(--bg);
+  font-size: var(--text-body);
+  color: var(--color-ink);
 }
 .sb-logo {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--space-2);
   font-weight: 600;
   letter-spacing: -0.02em;
   font-size: 15px;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 .sb-logo-img {
   height: 22px;
@@ -346,16 +331,17 @@ function resetConfirmationView() {
   display: block;
 }
 .auth-top .back {
-  color: var(--ink-3);
-  font-size: 13.5px;
-  letter-spacing: -0.005em;
+  color: var(--color-graphite);
+  font-size: var(--text-body-sm);
+  letter-spacing: -0.04px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: color 0.15s;
+  gap: var(--space-1);
+  transition: color var(--transition);
 }
 .auth-top .back:hover {
-  color: var(--ink);
+  color: var(--color-ink);
+  text-decoration: none;
 }
 
 /* ============ MAIN ============ */
@@ -364,102 +350,101 @@ function resetConfirmationView() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(16px, 4vw, 48px);
+  padding: var(--space-6);
   position: relative;
 }
 
 .auth-card {
   width: 100%;
   max-width: 420px;
-  padding: clamp(28px, 4vw, 40px);
+  padding: var(--space-8);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--space-6);
   position: relative;
 }
 
 .eyebrow {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .title {
-  font-size: clamp(32px, 5vw, 44px);
+  font-size: var(--text-heading-lg);
   font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1;
+  letter-spacing: -0.7px;
+  line-height: 1.15;
   margin: 0;
   text-wrap: balance;
 }
 .title-dot {
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 
 .lead {
   margin: 0;
   font-size: 15px;
-  color: var(--ink-2);
+  color: var(--color-slate);
   line-height: 1.45;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.04px;
   max-width: 32ch;
 }
 
 /* ============ TAB TOGGLE ============ */
 .auth-toggle {
   display: inline-flex;
-  background: var(--surface);
-  padding: 4px;
-  border-radius: 999px;
+  background: var(--color-fog);
+  padding: var(--space-1);
+  border-radius: var(--radius-pill);
   align-self: flex-start;
   gap: 2px;
+  border: 1px solid var(--color-mist);
 }
 .auth-toggle button {
   background: transparent;
   border: none;
-  padding: 8px 18px;
-  border-radius: 999px;
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-pill);
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
-  letter-spacing: -0.005em;
-  color: var(--ink-2);
+  letter-spacing: -0.04px;
+  color: var(--color-slate);
   cursor: pointer;
-  transition: background 0.18s, color 0.18s;
+  transition: background var(--transition), color var(--transition);
 }
 .auth-toggle button.active {
-  background: var(--bg);
-  color: var(--ink);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--line-2);
+  background: var(--color-snow);
+  color: var(--color-ink);
 }
 
 /* ============ SOCIAL ============ */
 .social-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .social {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 12px;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-md);
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--text-body-sm);
   font-weight: 500;
-  color: var(--ink);
+  color: var(--color-ink);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background var(--transition), border-color var(--transition);
 }
 .social:hover {
-  background: var(--surface);
-  border-color: var(--ink-4);
+  background: var(--color-fog);
 }
 .social svg {
   width: 18px;
@@ -470,156 +455,152 @@ function resetConfirmationView() {
 .divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: var(--ink-3);
+  gap: var(--space-3);
+  color: var(--color-graphite);
   font-size: 11px;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   letter-spacing: 0.1em;
-  margin: 4px 0;
+  margin: var(--space-1) 0;
 }
 .divider::before,
 .divider::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--line);
+  background: var(--color-mist);
 }
 
 /* ============ FORM ============ */
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-4);
 }
 .field-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1);
 }
 .field-label {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .field-input {
   width: 100%;
-  padding: 12px 14px;
+  padding: var(--space-3) var(--space-4);
   font-family: inherit;
-  font-size: 14px;
-  color: var(--ink);
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  letter-spacing: -0.005em;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  font-size: var(--text-body-sm);
+  color: var(--color-ink);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-md);
+  letter-spacing: -0.04px;
+  transition: border-color var(--transition);
 }
 .field-input::placeholder {
-  color: var(--ink-4);
+  color: var(--color-graphite);
 }
 .field-input:focus {
   outline: none;
-  border-color: var(--ink);
-  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.08);
+  border-color: var(--color-action);
 }
 
 .seg {
   display: inline-flex;
   width: 100%;
-  background: var(--surface);
-  padding: 4px;
-  border-radius: 10px;
+  background: var(--color-fog);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
   gap: 2px;
+  border: 1px solid var(--color-mist);
 }
 .seg button {
   flex: 1;
   background: transparent;
   border: none;
-  padding: 9px 12px;
-  border-radius: 8px;
+  padding: 9px var(--space-3);
+  border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
-  letter-spacing: -0.005em;
-  color: var(--ink-2);
+  letter-spacing: -0.04px;
+  color: var(--color-slate);
   cursor: pointer;
-  transition: background 0.18s, color 0.18s;
+  transition: background var(--transition), color var(--transition);
 }
 .seg button.active {
-  background: var(--bg);
-  color: var(--ink);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--line-2);
+  background: var(--color-snow);
+  color: var(--color-ink);
 }
 .seg-hint {
   margin: 0;
-  margin-top: 4px;
+  margin-top: var(--space-1);
   font-size: 12px;
-  color: var(--ink-3);
-  letter-spacing: -0.005em;
+  color: var(--color-graphite);
+  letter-spacing: -0.04px;
 }
 
 .forgot {
   align-self: flex-end;
   font-size: 12.5px;
-  color: var(--ink-2);
-  transition: color 0.15s;
+  color: var(--color-link);
+  transition: color var(--transition);
 }
 .forgot:hover {
-  color: var(--ink);
+  color: var(--color-action);
 }
 
 .auth-error {
   margin: 0;
-  padding: 10px 12px;
-  background: var(--accent-error, #E8B4B4);
-  color: var(--ink);
-  border-radius: 8px;
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
   font-size: 13px;
   line-height: 1.4;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.04px;
 }
 
 .submit {
-  margin-top: 8px;
-  padding: 14px;
-  background: var(--ink);
-  color: var(--accent-ink);
+  margin-top: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-action);
+  color: var(--color-snow);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  font-size: var(--text-body-sm);
+  font-weight: 600;
+  letter-spacing: -0.04px;
   cursor: pointer;
-  transition: transform 0.18s, opacity 0.18s;
+  transition: background var(--transition), opacity var(--transition);
 }
 .submit:hover:not(:disabled) {
-  transform: scale(0.985);
+  background: var(--color-action-hover);
 }
 .submit:active:not(:disabled) {
-  transform: scale(0.97);
+  background: var(--color-action-active);
 }
 .submit:disabled {
-  opacity: 0.7;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .terms {
   margin: 0;
   font-size: 11.5px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   line-height: 1.45;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.04px;
 }
 .terms a {
-  color: var(--ink-2);
-  text-decoration: underline;
-  text-decoration-color: var(--line);
-  text-underline-offset: 2px;
+  color: var(--color-link);
 }
 .terms a:hover {
-  color: var(--ink);
+  color: var(--color-action);
 }
 
 /* ============ DECOR ============ */
@@ -633,7 +614,7 @@ function resetConfirmationView() {
   opacity: 0;
   animation: auth-rise 1s 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
 }
-@media (max-width: 1100px) {
+@media (max-width: 1024px) {
   .decor {
     display: none;
   }
@@ -646,10 +627,10 @@ function resetConfirmationView() {
 .decor-receipt {
   position: absolute;
   width: 240px;
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.18), 0 8px 16px -8px rgba(0, 0, 0, 0.12);
-  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: var(--color-fog);
+  border: 1px solid var(--color-mist);
+  padding: var(--space-5);
   transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .decor-receipt:nth-child(1) {
@@ -678,16 +659,16 @@ function resetConfirmationView() {
 }
 .decor-receipt h4 {
   margin: 0;
-  font-size: 14px;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: var(--text-body-sm);
+  font-family: var(--font-mono);
   letter-spacing: 0.04em;
-  color: var(--ink);
+  color: var(--color-ink);
   text-align: center;
-  border-bottom: 1px dashed var(--line);
-  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--color-mist);
+  padding-bottom: var(--space-2);
 }
 .decor-receipt .lines {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -695,8 +676,7 @@ function resetConfirmationView() {
 .decor-receipt .lines i {
   display: block;
   height: 4px;
-  background: var(--ink-4);
-  opacity: 0.5;
+  background: var(--color-mist);
   border-radius: 2px;
 }
 .decor-receipt .lines i.w90 { width: 90%; }
@@ -704,33 +684,34 @@ function resetConfirmationView() {
 .decor-receipt .lines i.w70 { width: 70%; }
 .decor-receipt .lines i.w60 { width: 60%; }
 .decor-receipt .total {
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-mist);
   display: flex;
   justify-content: space-between;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
-  font-size: 14px;
+  font-family: var(--font-mono);
+  font-size: var(--text-body-sm);
   font-weight: 600;
 }
 
 /* ============ FOOTER ============ */
 .auth-foot {
-  padding: 24px var(--pad);
+  padding: var(--space-6);
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 12.5px;
-  color: var(--ink-3);
-  letter-spacing: -0.005em;
+  color: var(--color-graphite);
+  letter-spacing: -0.04px;
 }
 .auth-foot .foot-links a {
-  color: var(--ink-3);
-  margin-left: 20px;
-  transition: color 0.15s;
+  color: var(--color-graphite);
+  margin-left: var(--space-5);
+  transition: color var(--transition);
 }
 .auth-foot .foot-links a:hover {
-  color: var(--ink);
+  color: var(--color-ink);
+  text-decoration: none;
 }
 
 /* ============ ENTRANCE ============ */

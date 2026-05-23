@@ -6,8 +6,8 @@
         <span>scan-me</span>
       </NuxtLink>
       <nav class="actions">
-        <NuxtLink to="/signin" class="btn-hifi btn-ghost btn-sm">Sign in</NuxtLink>
-        <NuxtLink to="/signup" class="btn-hifi btn-primary btn-sm">Sign up</NuxtLink>
+        <NuxtLink to="/signin" class="btn btn-ghost btn-sm">Sign in</NuxtLink>
+        <NuxtLink to="/signup" class="btn btn-primary btn-sm">Sign up</NuxtLink>
       </nav>
     </header>
     <main class="content">
@@ -21,29 +21,29 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, 'Helvetica Neue', sans-serif;
+  background: var(--color-snow);
+  color: var(--color-ink);
+  font-family: var(--font-text);
 }
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px var(--pad);
-  border-bottom: 1px solid var(--line);
-  background: var(--bg);
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-8);
+  border-bottom: 1px solid var(--color-mist);
+  background: var(--color-snow);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--space-2);
   font-weight: 600;
   font-size: 15px;
   letter-spacing: -0.02em;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 .brand-img {
   height: 22px;
@@ -53,19 +53,19 @@
 
 .actions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
 }
 
 .content {
   flex: 1;
-  padding: 32px var(--pad);
+  padding: var(--space-8);
   min-width: 0;
 }
 
-@media (max-width: 640px) {
-  .topbar { padding: 12px 16px; }
-  .content { padding: 24px 16px; }
-  .brand span { font-size: 14px; }
+@media (max-width: 768px) {
+  .topbar { padding: var(--space-3) var(--space-4); }
+  .content { padding: var(--space-6) var(--space-4); }
+  .brand span { font-size: var(--text-body-sm); }
 }
 </style>

@@ -39,36 +39,36 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  padding: 24px;
+  background: var(--color-snow);
+  color: var(--color-ink);
+  font-family: var(--font-text);
+  padding: var(--space-6);
 }
 .confirm-card {
   max-width: 360px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
   text-align: center;
 }
 .eyebrow {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .title {
   margin: 0;
-  font-size: clamp(28px, 4vw, 36px);
+  font-size: var(--text-heading-lg);
   font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1;
+  letter-spacing: -0.7px;
+  line-height: 1.15;
 }
-.title-dot { color: var(--ink-3); }
+.title-dot { color: var(--color-graphite); }
 .lead {
   margin: 0;
-  color: var(--ink-2);
+  color: var(--color-slate);
   font-size: 15px;
 }
 </style>

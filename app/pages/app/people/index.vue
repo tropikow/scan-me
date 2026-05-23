@@ -174,7 +174,7 @@ async function submitAdd() {
       <div class="actions">
         <div class="role-filter">
           <button
-            class="btn-hifi btn-ghost btn-sm"
+            class="btn btn-ghost btn-sm"
             type="button"
             @click="showRoleMenu = !showRoleMenu"
           >
@@ -201,7 +201,7 @@ async function submitAdd() {
             </button>
           </div>
         </div>
-        <button class="btn-hifi btn-primary btn-sm" type="button" @click="openAdd">
+        <button class="btn btn-primary btn-sm" type="button" @click="openAdd">
           + Add person
         </button>
       </div>
@@ -321,7 +321,7 @@ async function submitAdd() {
           <div class="dialog-foot">
             <button
               type="button"
-              class="btn-hifi btn-ghost btn-sm"
+              class="btn btn-ghost btn-sm"
               :disabled="submitting"
               @click="closeAdd"
             >
@@ -329,7 +329,7 @@ async function submitAdd() {
             </button>
             <button
               type="submit"
-              class="btn-hifi btn-primary btn-sm"
+              class="btn btn-primary btn-sm"
               :disabled="submitting"
             >
               {{ submitting ? 'Adding…' : 'Add person' }}
@@ -344,14 +344,14 @@ async function submitAdd() {
 <style scoped>
 .topbar {
   padding: 20px 36px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-mist);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  background: color-mix(in srgb, var(--color-snow) 80%, transparent);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   z-index: 5;
@@ -364,14 +364,14 @@ async function submitAdd() {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  background: var(--bg);
-  border: 1px solid var(--line);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
   border-radius: 8px;
   padding: 4px;
   display: flex;
   flex-direction: column;
   min-width: 160px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-popover);
   z-index: 10;
 }
 .role-menu-item {
@@ -383,10 +383,10 @@ async function submitAdd() {
   text-align: left;
   border-radius: 6px;
   cursor: pointer;
-  color: var(--ink-2);
+  color: var(--color-slate);
 }
-.role-menu-item:hover { background: var(--surface); color: var(--ink); }
-.role-menu-item.active { background: var(--surface); color: var(--ink); font-weight: 500; }
+.role-menu-item:hover { background: var(--color-fog); color: var(--color-ink); }
+.role-menu-item.active { background: var(--color-fog); color: var(--color-ink); font-weight: 500; }
 
 .route { padding: 36px; }
 
@@ -396,9 +396,9 @@ async function submitAdd() {
   gap: 16px;
 }
 .person-card {
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
   padding: 24px;
   color: inherit;
   transition: transform 0.18s, border-color 0.15s;
@@ -409,7 +409,7 @@ async function submitAdd() {
   font-family: inherit;
   cursor: pointer;
 }
-.person-card:hover { transform: translateY(-2px); border-color: var(--ink-4); }
+.person-card:hover { transform: translateY(-2px); border-color: var(--color-mist); }
 .person-card .top {
   display: flex;
   justify-content: space-between;
@@ -423,16 +423,16 @@ async function submitAdd() {
   margin-top: 16px;
 }
 .person-card .role {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.05em;
   margin-top: 2px;
 }
 .person-card .note {
   margin-top: 6px;
   font-size: 12.5px;
-  color: var(--ink-2);
+  color: var(--color-slate);
   letter-spacing: -0.005em;
   line-height: 1.35;
 }
@@ -444,15 +444,15 @@ async function submitAdd() {
 }
 .person-card .amt {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.025em;
   line-height: 1;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 .person-card .ct {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 
 .person-card.add {
@@ -460,22 +460,22 @@ async function submitAdd() {
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   background: transparent;
 }
-.person-card.add:hover { color: var(--ink); border-color: var(--ink-4); }
+.person-card.add:hover { color: var(--color-ink); border-color: var(--color-mist); }
 .person-card.add .plus {
   font-size: 28px;
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--surface);
+  background: var(--color-fog);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .person-card.add .add-name {
-  color: var(--ink-2);
+  color: var(--color-slate);
   margin-top: 0;
 }
 
@@ -483,13 +483,13 @@ async function submitAdd() {
   margin-top: 24px;
   text-align: center;
   font-size: 13.5px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: -0.005em;
 }
 .empty-hint .link {
   background: transparent;
   border: none;
-  color: var(--ink);
+  color: var(--color-ink);
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
@@ -512,8 +512,8 @@ async function submitAdd() {
   animation: dialog-fade 0.18s ease-out;
 }
 .dialog {
-  background: var(--bg);
-  border: 1px solid var(--line);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
   border-radius: 14px;
   width: 100%;
   max-width: 440px;
@@ -537,13 +537,13 @@ async function submitAdd() {
   background: transparent;
   border: none;
   font-size: 22px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   cursor: pointer;
   line-height: 1;
   padding: 4px 8px;
   border-radius: 6px;
 }
-.dialog-close:hover { color: var(--ink); background: var(--surface); }
+.dialog-close:hover { color: var(--color-ink); background: var(--color-fog); }
 .dialog-close:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .dialog-body {
@@ -555,9 +555,9 @@ async function submitAdd() {
 
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-label {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -565,7 +565,7 @@ async function submitAdd() {
   font-size: 10px;
   text-transform: none;
   letter-spacing: 0.02em;
-  color: var(--ink-4, var(--ink-3));
+  color: var(--color-graphite);
   margin-left: 4px;
 }
 .field input,
@@ -574,18 +574,17 @@ async function submitAdd() {
   padding: 11px 13px;
   font: inherit;
   font-size: 14px;
-  color: var(--ink);
-  background: var(--bg);
-  border: 1px solid var(--line);
+  color: var(--color-ink);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
   border-radius: 10px;
   letter-spacing: -0.005em;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s;
 }
 .field input:focus,
 .field select:focus {
   outline: none;
-  border-color: var(--ink);
-  box-shadow: 0 0 0 3px rgba(10,10,10,0.08);
+  border-color: var(--color-action);
 }
 .field input:disabled,
 .field select:disabled {
@@ -596,10 +595,10 @@ async function submitAdd() {
 .form-error {
   margin: 0;
   padding: 10px 12px;
-  background: var(--accent-error, #E8B4B4);
+  background: var(--color-error);
   border-radius: 8px;
   font-size: 13px;
-  color: var(--ink);
+  color: var(--color-ink);
   line-height: 1.4;
 }
 

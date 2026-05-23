@@ -198,10 +198,10 @@ async function signOut() {
           <img src="~/assets/images/logo-1.png" alt="" class="sb-logo-img" />
           <span>scan-me</span>
         </NuxtLink>
-        <button class="btn-hifi btn-icon sb-close" title="Close menu" aria-label="Close menu" @click="closeMobileNav">
+        <button class="btn btn-icon sb-close" title="Close menu" aria-label="Close menu" @click="closeMobileNav">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
         </button>
-        <button class="btn-hifi btn-icon sb-notif" title="Notifications" aria-label="Notifications">
+        <button class="btn btn-icon sb-notif" title="Notifications" aria-label="Notifications">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9Z"/><path d="M9 17a3 3 0 0 0 6 0"/></svg>
         </button>
       </div>
@@ -322,20 +322,20 @@ async function signOut() {
 <style scoped>
 .shell {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: var(--layout-sidebar) 1fr;
   min-height: 100vh;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, 'Helvetica Neue', sans-serif;
+  background: var(--color-fog);
+  color: var(--color-ink);
+  font-family: var(--font-text);
 }
 
 .sidebar {
-  border-right: 1px solid var(--line);
-  padding: 22px 14px;
+  border-right: 1px solid var(--color-mist);
+  padding: var(--space-6) var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  background: var(--bg);
+  gap: var(--space-6);
+  background: var(--color-snow);
   position: sticky;
   top: 0;
   height: 100vh;
@@ -344,27 +344,26 @@ async function signOut() {
 .mobile-menu-btn {
   display: none;
   position: fixed;
-  top: 14px;
-  left: 14px;
+  top: var(--space-3);
+  left: var(--space-3);
   z-index: 30;
   width: 38px;
   height: 38px;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--ink);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
-.mobile-menu-btn:hover { background: var(--surface); }
+.mobile-menu-btn:hover { background: var(--color-fog); }
 
 .mobile-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--overlay);
   z-index: 40;
   animation: overlay-in 0.18s ease-out;
 }
@@ -375,7 +374,7 @@ async function signOut() {
 
 .sb-close { display: none; }
 
-@media (max-width: 880px) {
+@media (max-width: 1024px) {
   .shell { grid-template-columns: 1fr; }
 
   .sidebar {
@@ -388,7 +387,6 @@ async function signOut() {
     transform: translateX(-100%);
     transition: transform 0.22s ease-out;
     z-index: 50;
-    box-shadow: 0 0 24px rgba(0, 0, 0, 0.08);
     overflow-y: auto;
   }
   .sidebar.open { transform: translateX(0); }
@@ -400,7 +398,7 @@ async function signOut() {
 }
 
 .sb-head {
-  padding: 0 8px;
+  padding: 0 var(--space-2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -408,11 +406,11 @@ async function signOut() {
 .sb-logo {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--space-2);
   font-weight: 600;
   letter-spacing: -0.02em;
   font-size: 15px;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 .sb-logo-img {
   height: 22px;
@@ -426,112 +424,112 @@ async function signOut() {
 }
 .sb-search input {
   width: 100%;
-  padding: 8px 12px 8px 32px;
-  background: var(--surface);
+  padding: var(--space-2) var(--space-3) var(--space-2) 32px;
+  background: var(--color-fog);
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: 13px;
-  color: var(--ink);
-  letter-spacing: -0.005em;
+  color: var(--color-ink);
+  letter-spacing: -0.04px;
   outline: none;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background var(--transition), border-color var(--transition);
 }
-.sb-search input::placeholder { color: var(--ink-3); }
-.sb-search input:focus { background: var(--bg); border-color: var(--ink); }
+.sb-search input::placeholder { color: var(--color-graphite); }
+.sb-search input:focus { background: var(--color-snow); border-color: var(--color-action); }
 .sb-search svg {
   position: absolute;
-  left: 16px;
+  left: var(--space-4);
   top: 50%;
   transform: translateY(-50%);
-  color: var(--ink-3);
+  color: var(--color-graphite);
   width: 14px;
   height: 14px;
 }
 .sb-search kbd {
   position: absolute;
-  right: 16px;
+  right: var(--space-4);
   top: 50%;
   transform: translateY(-50%);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-3);
-  background: var(--bg);
+  color: var(--color-graphite);
+  background: var(--color-snow);
   padding: 2px 5px;
-  border-radius: 4px;
-  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-mist);
 }
 .sb-search-clear {
   position: absolute;
-  right: 12px;
+  right: var(--space-3);
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
   border: none;
-  color: var(--ink-3);
-  font-size: 16px;
+  color: var(--color-graphite);
+  font-size: var(--text-body);
   line-height: 1;
-  padding: 4px 6px;
-  border-radius: 4px;
+  padding: var(--space-1) 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
-.sb-search-clear:hover { color: var(--ink); background: var(--surface); }
+.sb-search-clear:hover { color: var(--color-ink); background: var(--color-fog); }
 
 .sb-search-panel {
   position: absolute;
   top: calc(100% + 6px);
   left: 6px;
   right: 6px;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-md);
   padding: 6px;
   max-height: 360px;
   overflow-y: auto;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-popover);
   z-index: 20;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 .sb-search-state {
-  padding: 12px 10px;
+  padding: var(--space-3) var(--space-3);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
   text-align: center;
   text-transform: uppercase;
 }
 .sb-search-group { display: flex; flex-direction: column; gap: 1px; }
 .sb-search-group-lb {
-  padding: 6px 10px 4px;
+  padding: 6px var(--space-3) var(--space-1);
   font-size: 10px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .sb-search-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 6px;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
   color: inherit;
   transition: background 0.12s;
 }
-.sb-search-item:hover { background: var(--surface); }
+.sb-search-item:hover { background: var(--color-fog); text-decoration: none; }
 .sb-search-avatar {
   width: 26px;
   height: 26px;
-  border-radius: 6px;
-  background: var(--surface);
+  border-radius: var(--radius-sm);
+  background: var(--color-fog);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--color-ink);
   flex-shrink: 0;
 }
 .sb-search-text {
@@ -543,75 +541,75 @@ async function signOut() {
 .sb-search-name {
   font-size: 13px;
   font-weight: 500;
-  letter-spacing: -0.005em;
-  color: var(--ink);
+  letter-spacing: -0.04px;
+  color: var(--color-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .sb-search-meta {
   font-size: 10.5px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.04em;
   margin-top: 1px;
 }
 
 .sb-scan {
-  background: var(--ink);
-  color: var(--accent-ink);
-  padding: 9px 12px;
-  border-radius: 8px;
-  font-size: 13.5px;
-  font-weight: 500;
+  background: var(--color-action);
+  color: var(--color-snow);
+  padding: 9px var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body-sm);
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: transform 0.18s;
+  gap: var(--space-2);
+  transition: background var(--transition);
 }
-.sb-scan:hover { transform: scale(0.985); }
+.sb-scan:hover { background: var(--color-action-hover); text-decoration: none; }
 .sb-scan svg { width: 16px; height: 16px; }
 .sb-scan .kbd {
   margin-left: auto;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
-  opacity: 0.6;
-  background: rgba(255, 255, 255, 0.12);
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.18);
   padding: 2px 5px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .sb-nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: var(--ink-2);
-  font-size: 13.5px;
-  font-weight: 450;
-  letter-spacing: -0.005em;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-slate);
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  letter-spacing: -0.04px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--transition), color var(--transition);
   border: none;
   background: transparent;
   font-family: inherit;
   text-align: left;
   width: 100%;
 }
-.nav-item:hover { background: var(--surface); color: var(--ink); }
+.nav-item:hover { background: var(--color-fog); color: var(--color-ink); text-decoration: none; }
 .nav-item.router-link-active {
-  background: var(--surface);
-  color: var(--ink);
-  font-weight: 500;
+  background: var(--color-fog);
+  color: var(--color-ink);
+  font-weight: 600;
 }
 .nav-item :deep(svg) { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.8; }
 .nav-item.router-link-active :deep(svg) { opacity: 1; }
 .nav-item .count {
   margin-left: auto;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 
 .sb-foot {
@@ -622,38 +620,38 @@ async function signOut() {
   gap: 2px;
 }
 .sb-nav-label {
-  padding: 0 12px;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  padding: 0 var(--space-3);
+  font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.1em;
-  margin: 8px 0 6px;
+  margin: var(--space-2) 0 6px;
 }
 .sb-user {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px;
-  border-radius: 8px;
-  transition: background 0.15s;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  transition: background var(--transition);
 }
-.sb-user:hover { background: var(--surface); }
+.sb-user:hover { background: var(--color-fog); }
 .sb-user-name {
   font-size: 13px;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  font-weight: 600;
+  letter-spacing: -0.04px;
   line-height: 1.1;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 .sb-user-plan {
   font-size: 11px;
-  color: var(--ink-3);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  color: var(--color-graphite);
+  font-family: var(--font-mono);
 }
-.sb-user .gear { margin-left: auto; color: var(--ink-3); }
+.sb-user .gear { margin-left: auto; color: var(--color-graphite); }
 
 .main { min-width: 0; overflow-x: hidden; }
-@media (max-width: 880px) {
+@media (max-width: 1024px) {
   .main { padding-top: 0; }
 }
 </style>

@@ -274,10 +274,10 @@ onBeforeUnmount(() => {
         <h1>New scan</h1>
       </div>
       <div class="actions">
-        <button class="btn-hifi btn-ghost btn-sm" @click="cancel">Cancel</button>
+        <button class="btn btn-ghost btn-sm" @click="cancel">Cancel</button>
         <button
           v-if="phase === 'review'"
-          class="btn-hifi btn-primary btn-sm"
+          class="btn btn-primary btn-sm"
           :disabled="saving"
           @click="save"
         >
@@ -399,8 +399,8 @@ onBeforeUnmount(() => {
               {{ result.items?.length || 0 }} line items · click any field to edit
             </span>
             <div class="right">
-              <button class="btn-hifi btn-ghost btn-sm" :disabled="saving" @click="reset">Discard</button>
-              <button class="btn-hifi btn-primary btn-sm" @click="save">Save invoice →</button>
+              <button class="btn btn-ghost btn-sm" :disabled="saving" @click="reset">Discard</button>
+              <button class="btn btn-primary btn-sm" @click="save">Save invoice →</button>
             </div>
           </div>
         </div>
@@ -412,14 +412,14 @@ onBeforeUnmount(() => {
 <style scoped>
 .topbar {
   padding: 20px 36px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-mist);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  background: color-mix(in srgb, var(--color-snow) 80%, transparent);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   z-index: 5;
@@ -427,7 +427,7 @@ onBeforeUnmount(() => {
 .topbar h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.025em; }
 .crumb {
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: -0.005em;
   margin-bottom: 4px;
 }
@@ -441,12 +441,12 @@ onBeforeUnmount(() => {
   margin: 0 auto;
 }
 .upload-zone {
-  border: 1.5px dashed var(--line-2, var(--line));
-  border-radius: var(--radius);
+  border: 1.5px dashed var(--color-mist);
+  border-radius: var(--radius-lg);
   padding: 64px 32px;
   text-align: center;
   cursor: pointer;
-  background: var(--surface);
+  background: var(--color-fog);
   transition: border-color 0.15s, background 0.15s;
   display: flex;
   flex-direction: column;
@@ -455,14 +455,14 @@ onBeforeUnmount(() => {
 }
 .upload-zone:hover,
 .upload-zone.over {
-  border-color: var(--ink);
-  background: var(--bg);
+  border-color: var(--color-ink);
+  background: var(--color-snow);
 }
 .upload-input { display: none; }
 .upload-icon {
   width: 48px;
   height: 48px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   margin-bottom: 4px;
 }
 .upload-icon svg { width: 100%; height: 100%; }
@@ -470,20 +470,20 @@ onBeforeUnmount(() => {
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 .upload-hint {
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: -0.005em;
 }
 .upload-error {
   margin-top: 12px;
   padding: 10px 14px;
-  background: var(--accent-error, #E8B4B4);
+  background: var(--color-error);
   border-radius: 8px;
   font-size: 13px;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 
 /* ============ PROCESSING ============ */
@@ -504,8 +504,8 @@ onBeforeUnmount(() => {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 2px solid var(--line);
-  border-top-color: var(--ink);
+  border: 2px solid var(--color-mist);
+  border-top-color: var(--color-ink);
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin {
@@ -518,7 +518,7 @@ onBeforeUnmount(() => {
 }
 .processing-hint {
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 
 /* ============ REVIEW ============ */
@@ -531,8 +531,8 @@ onBeforeUnmount(() => {
 @media (max-width: 1000px) { .scan-grid { grid-template-columns: 1fr; } }
 
 .scan-image-card {
-  background: var(--surface);
-  border-radius: var(--radius);
+  background: var(--color-fog);
+  border-radius: var(--radius-lg);
   padding: 24px;
   aspect-ratio: 3 / 4;
   display: flex;
@@ -546,8 +546,8 @@ onBeforeUnmount(() => {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-mist);
 }
 .scan-toolbar {
   position: absolute;
@@ -557,19 +557,19 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 .link-btn {
   background: none;
   border: none;
   font: inherit;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   cursor: pointer;
   padding: 0;
 }
-.link-btn:hover { color: var(--ink); }
+.link-btn:hover { color: var(--color-ink); }
 
 .scan-fields { display: flex; flex-direction: column; gap: 4px; }
 .scan-hdr {
@@ -590,18 +590,17 @@ onBeforeUnmount(() => {
   gap: 5px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--surface);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  background: var(--color-fog);
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-2);
+  color: var(--color-slate);
   letter-spacing: 0.04em;
 }
 .conf-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--ink);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 18%, transparent);
+  background: var(--color-success);
 }
 
 .scan-row {
@@ -610,12 +609,12 @@ onBeforeUnmount(() => {
   gap: 16px;
   align-items: center;
   padding: 14px 4px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-mist);
 }
 .scan-row .lbl {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -627,7 +626,7 @@ onBeforeUnmount(() => {
   padding: 6px 8px;
   font-family: inherit;
   font-size: 14px;
-  color: var(--ink);
+  color: var(--color-ink);
   width: 100%;
   outline: none;
   font-weight: 500;
@@ -635,21 +634,21 @@ onBeforeUnmount(() => {
   transition: background 0.15s, border-color 0.15s;
 }
 .scan-row input:hover,
-.scan-row select:hover { background: var(--surface); }
+.scan-row select:hover { background: var(--color-fog); }
 .scan-row input:focus,
-.scan-row select:focus { background: var(--bg); border-color: var(--ink); }
-.scan-row .edit { color: var(--ink-3); font-size: 12px; }
+.scan-row select:focus { background: var(--color-snow); border-color: var(--color-ink); }
+.scan-row .edit { color: var(--color-graphite); font-size: 12px; }
 
 .items-list {
   margin: 16px 0;
   padding: 16px;
-  background: var(--surface);
-  border-radius: var(--radius);
+  background: var(--color-fog);
+  border-radius: var(--radius-lg);
 }
 .items-hdr {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
   margin-bottom: 8px;
 }
@@ -658,29 +657,29 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   padding: 6px 0;
   font-size: 13px;
-  border-bottom: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--color-mist);
 }
 .item-row:last-child { border-bottom: none; }
-.item-desc { color: var(--ink-2); }
+.item-desc { color: var(--color-slate); }
 .item-amt {
-  color: var(--ink);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
   font-weight: 500;
 }
 
 .scan-total {
   margin-top: 12px;
   padding: 20px;
-  background: var(--surface);
-  border-radius: var(--radius);
+  background: var(--color-fog);
+  border-radius: var(--radius-lg);
   display: flex;
   justify-content: space-between;
   align-items: baseline;
 }
 .scan-total .l {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
 }
 .scan-total .v {
@@ -692,10 +691,10 @@ onBeforeUnmount(() => {
 .review-error {
   margin: 16px 0 0;
   padding: 10px 14px;
-  background: var(--accent-error, #E8B4B4);
+  background: var(--color-error);
   border-radius: 8px;
   font-size: 13px;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 
 .scan-actions {
@@ -706,7 +705,7 @@ onBeforeUnmount(() => {
 }
 .scan-actions .left {
   font-size: 12.5px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: -0.005em;
 }
 .scan-actions .right { display: flex; gap: 8px; }

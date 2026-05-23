@@ -270,8 +270,8 @@ function formatCardAmount(n: number | null, currency: string | null): string {
         <h1>{{ person?.name ?? 'Person not found' }}</h1>
       </div>
       <div class="actions">
-        <button class="btn-hifi btn-ghost btn-sm" type="button">✎ Edit</button>
-        <NuxtLink to="/app/scan" class="btn-hifi btn-primary btn-sm">+ Assign invoice</NuxtLink>
+        <button class="btn btn-ghost btn-sm" type="button">✎ Edit</button>
+        <NuxtLink to="/app/scan" class="btn btn-primary btn-sm">+ Assign invoice</NuxtLink>
       </div>
     </div>
 
@@ -307,7 +307,7 @@ function formatCardAmount(n: number | null, currency: string | null): string {
           <div class="share-actions">
             <button
               type="button"
-              class="btn-hifi btn-ghost btn-sm"
+              class="btn btn-ghost btn-sm"
               :disabled="regenerating"
               @click="regenerateShareLink"
             >
@@ -315,7 +315,7 @@ function formatCardAmount(n: number | null, currency: string | null): string {
             </button>
             <button
               type="button"
-              class="btn-hifi btn-primary btn-sm"
+              class="btn btn-primary btn-sm"
               :disabled="!shareLink"
               @click="copyShareLink"
             >
@@ -334,7 +334,7 @@ function formatCardAmount(n: number | null, currency: string | null): string {
             <NuxtLink
               v-if="allTimeCount > recent.length"
               to="/app/invoices"
-              class="btn-hifi btn-ghost btn-sm"
+              class="btn btn-ghost btn-sm"
             >
               See all {{ allTimeCount }} →
             </NuxtLink>
@@ -384,7 +384,7 @@ function formatCardAmount(n: number | null, currency: string | null): string {
       <div class="not-found">
         <h2>Person not found</h2>
         <p>This person may have been deleted, or you don't have access to it.</p>
-        <NuxtLink to="/app/people" class="btn-hifi btn-primary btn-sm">← Back to People</NuxtLink>
+        <NuxtLink to="/app/people" class="btn btn-primary btn-sm">← Back to People</NuxtLink>
       </div>
     </section>
   </div>
@@ -393,14 +393,14 @@ function formatCardAmount(n: number | null, currency: string | null): string {
 <style scoped>
 .topbar {
   padding: 20px 36px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-mist);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  background: color-mix(in srgb, var(--color-snow) 80%, transparent);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   z-index: 5;
@@ -408,20 +408,20 @@ function formatCardAmount(n: number | null, currency: string | null): string {
 .topbar h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.025em; }
 .crumb {
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: -0.005em;
   margin-bottom: 4px;
 }
-.crumb a { color: var(--ink-3); transition: color 0.15s; }
-.crumb a:hover { color: var(--ink); }
+.crumb a { color: var(--color-graphite); transition: color 0.15s; }
+.crumb a:hover { color: var(--color-ink); }
 .actions { display: flex; gap: 8px; }
 
 .route { padding: 36px; }
 
 .person-hero {
-  background: var(--ink);
-  color: var(--accent-ink);
-  border-radius: var(--radius);
+  background: var(--color-ink);
+  color: var(--color-snow);
+  border-radius: var(--radius-lg);
   padding: 32px;
   display: flex;
   align-items: flex-start;
@@ -433,7 +433,7 @@ function formatCardAmount(n: number | null, currency: string | null): string {
   height: 88px;
   font-size: 36px;
   background: rgba(255, 255, 255, 0.10);
-  color: var(--accent-ink);
+  color: var(--color-snow);
 }
 .person-hero h2 {
   margin: 0;
@@ -443,9 +443,9 @@ function formatCardAmount(n: number | null, currency: string | null): string {
 }
 .person-hero .submeta {
   margin-top: 4px;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: color-mix(in srgb, var(--accent-ink) 65%, transparent);
+  color: color-mix(in srgb, var(--color-snow) 65%, transparent);
   letter-spacing: 0.04em;
 }
 .person-hero .chips { display: flex; gap: 8px; margin-top: 14px; }
@@ -455,9 +455,9 @@ function formatCardAmount(n: number | null, currency: string | null): string {
 }
 .person-hero .right { margin-left: auto; text-align: right; }
 .person-hero .right .lbl {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: color-mix(in srgb, var(--accent-ink) 55%, transparent);
+  color: color-mix(in srgb, var(--color-snow) 55%, transparent);
   letter-spacing: 0.08em;
 }
 .person-hero .right .lbl.spaced { margin-top: 10px; }
@@ -477,9 +477,9 @@ function formatCardAmount(n: number | null, currency: string | null): string {
 @media (max-width: 1000px) { .split { grid-template-columns: 1fr; } }
 
 .card {
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
   padding: 24px;
 }
 .card h3 {
@@ -503,9 +503,9 @@ function formatCardAmount(n: number | null, currency: string | null): string {
   margin-top: 8px;
 }
 .inv-card {
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
   padding: 16px;
   color: inherit;
   transition: transform 0.18s, border-color 0.15s;
@@ -513,10 +513,10 @@ function formatCardAmount(n: number | null, currency: string | null): string {
   flex-direction: column;
   gap: 12px;
 }
-.inv-card:hover { transform: translateY(-2px); border-color: var(--ink-4); }
+.inv-card:hover { transform: translateY(-2px); border-color: var(--color-mist); }
 .inv-card .thumb {
   aspect-ratio: 4 / 3;
-  background: var(--surface);
+  background: var(--color-fog);
   border-radius: 6px;
   margin-bottom: 12px;
   position: relative;
@@ -546,12 +546,12 @@ function formatCardAmount(n: number | null, currency: string | null): string {
   margin-top: 6px;
 }
 .inv-card .row .date {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 .inv-card .row .amt {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
 }
@@ -574,12 +574,12 @@ function formatCardAmount(n: number | null, currency: string | null): string {
   letter-spacing: -0.01em;
 }
 .bd-row .v {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-weight: 600;
 }
 .bd-bar {
   height: 4px;
-  background: var(--surface);
+  background: var(--color-fog);
   border-radius: 2px;
   overflow: hidden;
   margin-top: 4px;
@@ -587,7 +587,7 @@ function formatCardAmount(n: number | null, currency: string | null): string {
 .bd-bar > i {
   display: block;
   height: 100%;
-  background: var(--ink);
+  background: var(--color-ink);
   border-radius: 2px;
 }
 
@@ -595,11 +595,11 @@ function formatCardAmount(n: number | null, currency: string | null): string {
   padding: 18px 4px;
   text-align: center;
   font-size: 13.5px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: -0.005em;
 }
 .empty .link {
-  color: var(--ink);
+  color: var(--color-ink);
   text-decoration: underline;
   text-underline-offset: 3px;
   margin-left: 6px;
@@ -621,7 +621,7 @@ function formatCardAmount(n: number | null, currency: string | null): string {
 }
 .not-found p {
   margin: 0 0 8px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   font-size: 14px;
 }
 
@@ -629,9 +629,9 @@ function formatCardAmount(n: number | null, currency: string | null): string {
 .share-card {
   margin-bottom: 24px;
   padding: 20px 24px;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -647,12 +647,12 @@ function formatCardAmount(n: number | null, currency: string | null): string {
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.015em;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 .share-hint {
   margin-top: 4px;
   font-size: 12.5px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   line-height: 1.45;
   max-width: 64ch;
 }
@@ -663,19 +663,19 @@ function formatCardAmount(n: number | null, currency: string | null): string {
 }
 .share-link {
   padding: 12px 14px;
-  background: var(--surface);
-  border: 1px solid var(--line-2, var(--line));
+  background: var(--color-fog);
+  border: 1px solid var(--color-mist);
   border-radius: 8px;
   font-size: 12.5px;
-  color: var(--ink-2);
+  color: var(--color-slate);
   word-break: break-all;
   user-select: all;
 }
 .share-error {
   padding: 10px 12px;
-  background: var(--accent-error, #E8B4B4);
+  background: var(--color-error);
   border-radius: 8px;
   font-size: 13px;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 </style>

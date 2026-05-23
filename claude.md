@@ -28,6 +28,7 @@ Estructura default de Nuxt 4. Convenciones específicas:
 
 ## Convenciones detalladas
 @.claude/security.md
+@.claude/design.md
 
 ## Comandos
 - `pnpm dev` — desarrollo local

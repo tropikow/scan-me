@@ -371,8 +371,8 @@ const recent = computed(() =>
     <div class="topbar">
       <h1>Dashboard</h1>
       <div class="actions">
-        <button class="btn-hifi btn-ghost btn-sm">↓ Export</button>
-        <NuxtLink to="/app/scan" class="btn-hifi btn-primary btn-sm">+ New scan</NuxtLink>
+        <button class="btn btn-ghost btn-sm">↓ Export</button>
+        <NuxtLink to="/app/scan" class="btn btn-primary btn-sm">+ New scan</NuxtLink>
       </div>
     </div>
 
@@ -429,7 +429,7 @@ const recent = computed(() =>
         <div class="card">
           <div class="card-title-row">
             <h3>Recent invoices</h3>
-            <NuxtLink to="/app/invoices" class="btn-hifi btn-ghost btn-sm">All →</NuxtLink>
+            <NuxtLink to="/app/invoices" class="btn btn-ghost btn-sm">All →</NuxtLink>
           </div>
           <div class="list">
             <NuxtLink
@@ -461,8 +461,8 @@ const recent = computed(() =>
           <p>Drop a photo or PDF here · or paste · we'll parse and sort.</p>
         </div>
         <div class="acts">
-          <span class="btn-hifi btn-ghost btn-sm">From photos</span>
-          <span class="btn-hifi btn-primary btn-sm">📷 Scan now</span>
+          <span class="btn btn-ghost btn-sm">From photos</span>
+          <span class="btn btn-primary btn-sm">📷 Scan now</span>
         </div>
       </NuxtLink>
     </section>
@@ -472,14 +472,14 @@ const recent = computed(() =>
 <style scoped>
 .topbar {
   padding: 20px 36px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-mist);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  background: color-mix(in srgb, var(--color-snow) 80%, transparent);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   z-index: 5;
@@ -505,24 +505,24 @@ const recent = computed(() =>
 @media (max-width: 1000px) { .dash-hero { grid-template-columns: 1fr; } }
 
 .card {
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
   padding: 24px;
 }
 .card-dark {
-  background: var(--ink);
-  color: var(--accent-ink);
-  border-color: var(--ink);
+  background: var(--color-ink);
+  color: var(--color-snow);
+  border-color: var(--color-ink);
 }
 .card-eyebrow {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-.card-dark .card-eyebrow { color: color-mix(in srgb, var(--accent-ink) 55%, transparent); }
+.card-dark .card-eyebrow { color: color-mix(in srgb, var(--color-snow) 55%, transparent); }
 .card h3 {
   margin: 0;
   font-size: 16px;
@@ -556,14 +556,14 @@ const recent = computed(() =>
   padding: 4px 8px;
   border-radius: 999px;
   font-size: 12px;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   background: rgba(255, 255, 255, 0.12);
 }
 .hero-meta {
   margin-top: 8px;
   font-size: 13px;
-  color: color-mix(in srgb, var(--accent-ink) 70%, transparent);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  color: color-mix(in srgb, var(--color-snow) 70%, transparent);
+  font-family: var(--font-mono);
   letter-spacing: 0.02em;
 }
 .spark { margin-top: 20px; height: 80px; width: 100%; }
@@ -574,17 +574,17 @@ const recent = computed(() =>
   gap: 16px;
 }
 .kpi {
-  background: var(--surface);
-  border-radius: var(--radius);
+  background: var(--color-fog);
+  border-radius: var(--radius-lg);
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 .kpi .lbl {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -599,8 +599,8 @@ const recent = computed(() =>
 .kpi .sub {
   margin-top: auto;
   font-size: 11.5px;
-  color: var(--ink-3);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  color: var(--color-graphite);
+  font-family: var(--font-mono);
 }
 
 /* split */
@@ -621,7 +621,7 @@ const recent = computed(() =>
 }
 .chart .bar {
   flex: 1;
-  background: var(--ink);
+  background: var(--color-ink);
   border-radius: 4px 4px 0 0;
   min-width: 8px;
   opacity: 0.9;
@@ -631,8 +631,8 @@ const recent = computed(() =>
   .chart { gap: 3px; padding: 0 2px; }
   .chart .bar { min-width: 0; border-radius: 2px 2px 0 0; }
 }
-.chart .bar.muted { background: var(--surface-2); }
-.chart .bar.empty { min-height: 2px; background: var(--surface-2); opacity: 0.6; }
+.chart .bar.muted { background: var(--color-mist); }
+.chart .bar.empty { min-height: 2px; background: var(--color-mist); opacity: 0.6; }
 .chart .bar:hover { opacity: 1; }
 .chart-empty {
   height: 220px;
@@ -640,16 +640,16 @@ const recent = computed(() =>
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  color: var(--ink-3);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  color: var(--color-graphite);
+  font-family: var(--font-mono);
 }
 .chart-axis {
   display: flex;
   justify-content: space-between;
   padding: 8px 4px 0;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.05em;
 }
 
@@ -661,7 +661,7 @@ const recent = computed(() =>
   gap: 12px;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-mist);
   color: inherit;
   transition: opacity 0.15s;
 }
@@ -671,39 +671,39 @@ const recent = computed(() =>
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--color-fog);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-weight: 600;
   font-size: 13px;
 }
 .list-row .name { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; }
 .list-row .meta {
   font-size: 11.5px;
-  color: var(--ink-3);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  color: var(--color-graphite);
+  font-family: var(--font-mono);
   margin-top: 2px;
 }
 .list-row .amt {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-weight: 600;
   font-size: 14px;
 }
 .list-empty {
   padding: 16px 0;
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
-.list-empty a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.list-empty a { color: var(--color-ink); text-decoration: underline; text-underline-offset: 3px; }
 
 /* drop zone */
 .drop-zone {
   margin-top: 16px;
-  background: var(--bg);
-  border: 1.5px dashed var(--line);
-  border-radius: var(--radius);
+  background: var(--color-snow);
+  border: 1.5px dashed var(--color-mist);
+  border-radius: var(--radius-lg);
   padding: 36px;
   display: flex;
   align-items: center;
@@ -712,20 +712,20 @@ const recent = computed(() =>
   transition: background 0.15s, border-color 0.15s;
   color: inherit;
 }
-.drop-zone:hover { background: var(--surface); border-color: var(--ink-4); }
+.drop-zone:hover { background: var(--color-fog); border-color: var(--color-mist); }
 .drop-zone .ico-big {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--surface);
+  background: var(--color-fog);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 .drop-zone h4 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
-.drop-zone p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+.drop-zone p { margin: 4px 0 0; font-size: 13px; color: var(--color-slate); }
 .drop-zone .acts { margin-left: auto; display: flex; gap: 8px; }
 
 @media (max-width: 880px) {

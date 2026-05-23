@@ -269,7 +269,7 @@ onBeforeUnmount(() => {
         Your receipt has been sent to <strong>{{ share?.person.name }}</strong>.
         It will appear in their scan-me dashboard shortly.
       </p>
-      <button class="btn-hifi btn-primary btn-sm" type="button" @click="sendAnother">
+      <button class="btn btn-primary btn-sm" type="button" @click="sendAnother">
         Send another
       </button>
     </div>
@@ -324,14 +324,14 @@ onBeforeUnmount(() => {
           <div class="upload-hint">Take a photo or upload an image · JPEG, PNG, WebP · up to 10 MB</div>
 
           <div class="upload-cta">
-            <button type="button" class="btn-hifi btn-primary upload-btn" @click="pickCamera">
+            <button type="button" class="btn btn-primary upload-btn" @click="pickCamera">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z" />
                 <circle cx="12" cy="13" r="3.5" />
               </svg>
               Take a photo
             </button>
-            <button type="button" class="btn-hifi upload-btn" @click="pickGallery">
+            <button type="button" class="btn upload-btn" @click="pickGallery">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
@@ -420,13 +420,13 @@ onBeforeUnmount(() => {
             </span>
             <div class="right">
               <button
-                class="btn-hifi btn-ghost btn-sm"
+                class="btn btn-ghost btn-sm"
                 type="button"
                 :disabled="saving"
                 @click="reset"
               >Discard</button>
               <button
-                class="btn-hifi btn-primary btn-sm"
+                class="btn btn-primary btn-sm"
                 type="button"
                 :disabled="saving"
                 @click="save"
@@ -445,141 +445,139 @@ onBeforeUnmount(() => {
 .share-wrap {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 16px 64px;
+  padding: var(--space-6) var(--space-4) var(--space-12);
 }
 
 .share-head {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
   text-align: center;
 }
 .crumb {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .share-head h1 {
-  margin: 8px 0 12px;
-  font-size: clamp(28px, 4vw, 44px);
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: var(--text-heading-lg);
   font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  letter-spacing: -0.7px;
+  line-height: 1.15;
 }
 .share-head .who {
-  background: var(--ink);
-  color: var(--accent-ink);
-  padding: 2px 12px;
-  border-radius: 8px;
+  background: var(--color-action);
+  color: var(--color-snow);
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-md);
   white-space: nowrap;
 }
 .share-head .lede {
   margin: 0 auto;
   max-width: 52ch;
-  color: var(--ink-2);
+  color: var(--color-slate);
   font-size: 15px;
   line-height: 1.5;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.04px;
 }
 
 /* STATES */
 .state.center {
   max-width: 480px;
-  margin: 80px auto;
+  margin: var(--space-12) auto;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: var(--space-4);
 }
 .state-title {
-  font-size: 22px;
+  font-size: var(--text-heading-sm);
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.3px;
 }
 .state-hint {
   margin: 0;
-  color: var(--ink-3);
-  font-size: 14px;
+  color: var(--color-graphite);
+  font-size: var(--text-body-sm);
   line-height: 1.5;
 }
 .check-circle {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--ink);
-  color: var(--accent-ink);
+  background: var(--color-success);
+  color: var(--color-snow);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: var(--text-heading);
   font-weight: 700;
 }
 
 /* UPLOAD */
 .upload-wrap { max-width: 720px; margin: 0 auto; }
 .upload-zone {
-  border: 1.5px dashed var(--line-2, var(--line));
-  border-radius: var(--radius);
-  padding: 56px 24px;
+  border: 1.5px dashed var(--color-mist);
+  border-radius: var(--radius-lg);
+  padding: var(--space-12) var(--space-6);
   text-align: center;
-  background: var(--surface);
-  transition: border-color 0.15s, background 0.15s;
+  background: var(--color-fog);
+  transition: border-color var(--transition), background var(--transition);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .upload-zone.over {
-  border-color: var(--ink);
-  background: var(--bg);
+  border-color: var(--color-action);
+  background: var(--color-snow);
 }
 .upload-input { display: none; }
-.upload-icon { width: 44px; height: 44px; color: var(--ink-3); margin-bottom: 4px; }
+.upload-icon { width: 44px; height: 44px; color: var(--color-graphite); margin-bottom: var(--space-1); }
 .upload-icon svg { width: 100%; height: 100%; }
 .upload-title {
-  font-size: 18px;
+  font-size: var(--text-subheading);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--ink);
+  letter-spacing: -0.2px;
+  color: var(--color-ink);
 }
 .upload-hint {
   font-size: 13px;
-  color: var(--ink-3);
-  letter-spacing: -0.005em;
+  color: var(--color-graphite);
+  letter-spacing: -0.04px;
   max-width: 36ch;
 }
 .upload-cta {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--space-3);
   justify-content: center;
-  margin-top: 14px;
+  margin-top: var(--space-4);
 }
 .upload-btn {
-  padding: 11px 18px;
-  font-size: 14px;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-body-sm);
   min-width: 160px;
 }
 .upload-drophint {
-  margin: 12px 0 0;
+  margin: var(--space-3) 0 0;
   font-size: 10px;
   letter-spacing: 0.16em;
-  color: var(--ink-4);
+  color: var(--color-graphite);
 }
 .upload-error {
-  margin-top: 12px;
-  padding: 10px 14px;
-  background: var(--accent-error, #E8B4B4);
-  border-radius: 8px;
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  border-radius: var(--radius-md);
   font-size: 13px;
-  color: var(--ink);
+  color: var(--color-error);
 }
 
-/* On touch/small screens drag-and-drop isn't a thing — hide the hint and
-   give the buttons full width so they're thumb-friendly. */
-@media (max-width: 640px) {
-  .upload-zone { padding: 40px 18px; }
+@media (max-width: 768px) {
+  .upload-zone { padding: var(--space-10) var(--space-5); }
   .upload-cta { flex-direction: column; width: 100%; max-width: 320px; }
   .upload-btn { width: 100%; min-width: 0; }
   .upload-drophint { display: none; }
@@ -593,15 +591,15 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding-top: 64px;
+  gap: var(--space-4);
+  padding-top: var(--space-12);
 }
 .spinner {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 2px solid var(--line);
-  border-top-color: var(--ink);
+  border: 2px solid var(--color-mist);
+  border-top-color: var(--color-action);
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -610,15 +608,16 @@ onBeforeUnmount(() => {
 .scan-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: var(--space-6);
   align-items: start;
 }
-@media (max-width: 900px) { .scan-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1024px) { .scan-grid { grid-template-columns: 1fr; } }
 
 .scan-image-card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 24px;
+  background: var(--color-fog);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
   aspect-ratio: 3 / 4;
   display: flex;
   flex-direction: column;
@@ -631,76 +630,74 @@ onBeforeUnmount(() => {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  border-radius: var(--radius-md);
 }
 .scan-toolbar {
   position: absolute;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
+  bottom: var(--space-3);
+  left: var(--space-3);
+  right: var(--space-3);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 .link-btn {
   background: none;
   border: none;
   font: inherit;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   cursor: pointer;
   padding: 0;
 }
-.link-btn:hover { color: var(--ink); }
+.link-btn:hover { color: var(--color-ink); }
 
-.scan-fields { display: flex; flex-direction: column; gap: 4px; }
+.scan-fields { display: flex; flex-direction: column; gap: var(--space-1); }
 .scan-hdr {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
 .scan-hdr h2 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--text-heading);
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.5px;
 }
 .conf {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--surface);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-fog);
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-2);
+  color: var(--color-slate);
   letter-spacing: 0.04em;
 }
 .conf-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--ink);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 18%, transparent);
+  background: var(--color-success);
 }
 
 .scan-row {
   display: grid;
   grid-template-columns: 140px 1fr auto;
-  gap: 16px;
+  gap: var(--space-4);
   align-items: center;
-  padding: 14px 4px;
-  border-bottom: 1px solid var(--line);
+  padding: var(--space-4) var(--space-1);
+  border-bottom: 1px solid var(--color-mist);
 }
 .scan-row .lbl {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -708,91 +705,93 @@ onBeforeUnmount(() => {
 .scan-row select {
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  padding: 6px var(--space-2);
   font-family: inherit;
-  font-size: 14px;
-  color: var(--ink);
+  font-size: var(--text-body-sm);
+  color: var(--color-ink);
   width: 100%;
   outline: none;
   font-weight: 500;
-  letter-spacing: -0.005em;
-  transition: background 0.15s, border-color 0.15s;
+  letter-spacing: -0.04px;
+  transition: background var(--transition), border-color var(--transition);
 }
 .scan-row input:hover,
-.scan-row select:hover { background: var(--surface); }
+.scan-row select:hover { background: var(--color-fog); }
 .scan-row input:focus,
-.scan-row select:focus { background: var(--bg); border-color: var(--ink); }
-.scan-row .edit { color: var(--ink-3); font-size: 12px; }
+.scan-row select:focus { background: var(--color-snow); border-color: var(--color-action); }
+.scan-row .edit { color: var(--color-graphite); font-size: 12px; }
 
 .items-list {
-  margin: 16px 0;
-  padding: 16px;
-  background: var(--surface);
-  border-radius: var(--radius);
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  background: var(--color-fog);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
 }
 .items-hdr {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 .item-row {
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
   font-size: 13px;
-  border-bottom: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--color-mist);
 }
 .item-row:last-child { border-bottom: none; }
-.item-desc { color: var(--ink-2); }
+.item-desc { color: var(--color-slate); }
 .item-amt {
-  color: var(--ink);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
   font-weight: 500;
 }
 
 .scan-total {
-  margin-top: 12px;
-  padding: 20px;
-  background: var(--surface);
-  border-radius: var(--radius);
+  margin-top: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-fog);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
   display: flex;
   justify-content: space-between;
   align-items: baseline;
 }
 .scan-total .l {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
 }
 .scan-total .v {
-  font-size: 32px;
+  font-size: var(--text-heading-lg);
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.7px;
 }
 .review-error {
-  margin: 16px 0 0;
-  padding: 10px 14px;
-  background: var(--accent-error, #E8B4B4);
-  border-radius: 8px;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  border-radius: var(--radius-md);
   font-size: 13px;
-  color: var(--ink);
+  color: var(--color-error);
 }
 .scan-actions {
-  margin-top: 16px;
+  margin-top: var(--space-4);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 .scan-actions .left {
   font-size: 12.5px;
-  color: var(--ink-3);
-  letter-spacing: -0.005em;
+  color: var(--color-graphite);
+  letter-spacing: -0.04px;
 }
-.scan-actions .right { display: flex; gap: 8px; }
+.scan-actions .right { display: flex; gap: var(--space-2); }
 </style>

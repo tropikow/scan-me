@@ -112,11 +112,11 @@ function downloadPdf() {
       </div>
       <div class="actions">
         <button
-          class="btn-hifi btn-ghost btn-sm"
+          class="btn btn-ghost btn-sm"
           :disabled="pending || !data?.invoice"
           @click="downloadPdf"
         >↓ PDF</button>
-        <button class="btn-hifi btn-ghost btn-sm" disabled>✎ Edit</button>
+        <button class="btn btn-ghost btn-sm" disabled>✎ Edit</button>
       </div>
     </div>
 
@@ -217,14 +217,14 @@ function downloadPdf() {
 <style scoped>
 .topbar {
   padding: 20px 36px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-mist);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  background: color-mix(in srgb, var(--color-snow) 80%, transparent);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   z-index: 5;
@@ -232,12 +232,12 @@ function downloadPdf() {
 .topbar h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.025em; }
 .crumb {
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: -0.005em;
   margin-bottom: 4px;
 }
-.crumb a { color: var(--ink-3); transition: color 0.15s; }
-.crumb a:hover { color: var(--ink); }
+.crumb a { color: var(--color-graphite); transition: color 0.15s; }
+.crumb a:hover { color: var(--color-ink); }
 .actions { display: flex; gap: 8px; }
 
 .route { padding: 36px; }
@@ -245,11 +245,11 @@ function downloadPdf() {
 .state {
   padding: 48px 24px;
   text-align: center;
-  background: var(--surface);
-  border-radius: var(--radius);
-  color: var(--ink-2);
+  background: var(--color-fog);
+  border-radius: var(--radius-lg);
+  color: var(--color-slate);
 }
-.state.error a { color: var(--ink); text-decoration: underline; }
+.state.error a { color: var(--color-ink); text-decoration: underline; }
 
 .inv-hero {
   display: grid;
@@ -267,8 +267,8 @@ function downloadPdf() {
 }
 
 .inv-original {
-  background: var(--surface);
-  border-radius: var(--radius);
+  background: var(--color-fog);
+  border-radius: var(--radius-lg);
   padding: 16px 18px 18px;
   display: flex;
   flex-direction: column;
@@ -282,12 +282,12 @@ function downloadPdf() {
 }
 .inv-original-hint {
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.06em;
 }
 .inv-original-body {
-  background: var(--bg);
-  border: 1px solid var(--line);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
   border-radius: 8px;
   padding: 16px;
   min-height: 220px;
@@ -300,13 +300,13 @@ function downloadPdf() {
   max-width: 100%;
   max-height: 460px;
   object-fit: contain;
-  border-radius: 6px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-mist);
 }
 .inv-thumb-empty {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 
 .inv-meta {
@@ -315,9 +315,9 @@ function downloadPdf() {
   gap: 8px;
 }
 .card-eyebrow {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -335,9 +335,9 @@ function downloadPdf() {
   margin-top: 12px;
 }
 .submeta {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.05em;
 }
 .chips { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
@@ -351,31 +351,31 @@ function downloadPdf() {
 .inv-table td {
   text-align: left;
   padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-mist);
   font-size: 13px;
 }
 .inv-table th {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 500;
 }
 .inv-table td.r {
   text-align: right;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-weight: 500;
 }
 .inv-table th.r { text-align: right; }
 .inv-table tr.subtotal td {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
-  color: var(--ink-2);
+  font-family: var(--font-mono);
+  color: var(--color-slate);
 }
 .inv-table tr.total td {
   border-bottom: none;
   padding-top: 16px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 15px;
 }
 </style>

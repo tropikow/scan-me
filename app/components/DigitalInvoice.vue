@@ -170,15 +170,15 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
 
 <style scoped>
 .dinv {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
   border-radius: var(--radius-lg);
-  padding: 28px 28px 22px;
+  padding: var(--space-8) var(--space-8) var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  color: var(--fg-primary);
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  gap: var(--space-5);
+  color: var(--color-ink);
+  font-family: var(--font-text);
   position: relative;
 }
 
@@ -186,10 +186,10 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
 .dinv::after {
   content: '';
   position: absolute;
-  left: 14px;
-  right: 14px;
+  left: var(--space-4);
+  right: var(--space-4);
   height: 0;
-  border-top: 1px dashed var(--border-subtle);
+  border-top: 1px dashed var(--color-mist);
 }
 .dinv::before { top: 0; }
 .dinv::after { bottom: 0; }
@@ -198,12 +198,12 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .dinv-brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--space-2);
 }
 .dinv-logo {
   height: 22px;
@@ -218,16 +218,16 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
 .dinv-head-right {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .dinv-void-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--accent-error, #E8B4B4);
-  background: color-mix(in srgb, var(--accent-error, #E8B4B4) 25%, transparent);
-  color: var(--fg-primary);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 14%, transparent);
+  color: var(--color-error);
   font-size: 10px;
   letter-spacing: 0.14em;
   font-weight: 600;
@@ -241,22 +241,22 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
   line-height: 1.1;
 }
 .dinv-stamp-label {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--fg-muted);
+  color: var(--color-graphite);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .dinv-stamp-id {
-  margin-top: 4px;
+  margin-top: var(--space-1);
   font-size: 12px;
-  color: var(--fg-primary);
+  color: var(--color-ink);
   letter-spacing: 0.06em;
 }
 
 .dinv-divider {
   height: 0;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--color-mist);
 }
 .dinv-divider.dashed {
   border-top-style: dashed;
@@ -265,12 +265,12 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
 .dinv-meta {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .dinv-meta-block {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 .dinv-meta-block.r {
   align-items: flex-end;
@@ -278,19 +278,19 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
 }
 .dinv-key {
   font-size: 10px;
-  color: var(--fg-muted);
+  color: var(--color-graphite);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .dinv-val {
-  font-size: 14px;
+  font-size: var(--text-body-sm);
   font-weight: 500;
   letter-spacing: -0.01em;
-  color: var(--fg-primary);
+  color: var(--color-ink);
 }
 .dinv-sub {
   font-size: 11px;
-  color: var(--fg-muted);
+  color: var(--color-graphite);
   letter-spacing: 0.02em;
 }
 
@@ -302,22 +302,22 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
 .dinv-row {
   display: grid;
   grid-template-columns: 1.6fr 0.4fr 0.6fr 0.7fr;
-  gap: 10px;
+  gap: var(--space-3);
   align-items: baseline;
   font-size: 13px;
   padding: 6px 0;
-  border-bottom: 1px dotted var(--border-subtle);
+  border-bottom: 1px dotted var(--color-mist);
 }
 .dinv-row:last-child {
   border-bottom: none;
 }
 .dinv-row-head {
   font-size: 10px;
-  color: var(--fg-muted);
+  color: var(--color-graphite);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-mist);
 }
 .dinv-col-desc { letter-spacing: -0.005em; }
 .dinv-col-qty,
@@ -327,10 +327,10 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
 }
 
 .dinv-empty {
-  padding: 12px 0;
+  padding: var(--space-3) 0;
   text-align: center;
   font-size: 11px;
-  color: var(--fg-muted);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -352,20 +352,20 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
   font-size: 11px;
 }
 .dinv-trow.grand {
-  margin-top: 8px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-subtle);
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-mist);
 }
 .dinv-trow.grand .dinv-key {
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--fg-primary);
+  color: var(--color-ink);
 }
 .dinv-trow.grand .dinv-val {
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.025em;
 }
 
@@ -374,20 +374,20 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
   justify-content: space-between;
   align-items: center;
   font-size: 10px;
-  color: var(--fg-muted);
+  color: var(--color-graphite);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding-top: 4px;
+  padding-top: var(--space-1);
 }
 
 .dinv-notice {
   display: none;
-  margin-top: 4px;
-  padding: 12px 14px;
-  border: 1px solid var(--border-subtle);
+  margin-top: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-mist);
   border-radius: var(--radius-md);
-  background: var(--bg-base);
-  gap: 12px;
+  background: var(--color-fog);
+  gap: var(--space-3);
   align-items: flex-start;
 }
 @media print {
@@ -398,32 +398,32 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
 .dinv-notice-tag {
   flex-shrink: 0;
   font-size: 10px;
-  color: var(--fg-muted);
+  color: var(--color-graphite);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 2px 8px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 999px;
-  background: var(--bg-surface);
+  padding: 2px var(--space-2);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-pill);
+  background: var(--color-snow);
   margin-top: 1px;
 }
 .dinv-notice-body {
   margin: 0;
   font-size: 11px;
   line-height: 1.5;
-  color: var(--fg-muted);
+  color: var(--color-graphite);
   letter-spacing: -0.005em;
 }
 .dinv-notice-body strong {
-  color: var(--fg-primary);
+  color: var(--color-ink);
   font-weight: 600;
 }
 
-@media (max-width: 540px) {
-  .dinv { padding: 22px 18px 18px; }
+@media (max-width: 768px) {
+  .dinv { padding: var(--space-6) var(--space-5) var(--space-5); }
   .dinv-row {
     grid-template-columns: 1.4fr 0.4fr 0.6fr 0.7fr;
-    gap: 8px;
+    gap: var(--space-2);
     font-size: 12px;
   }
   .dinv-trow.grand .dinv-val { font-size: 18px; }
@@ -437,7 +437,7 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
 .dinv-is-voided .dinv-col-amt,
 .dinv-is-voided .dinv-trow.grand .dinv-val {
   text-decoration: line-through;
-  text-decoration-color: var(--accent-error, #E8B4B4);
+  text-decoration-color: var(--color-error);
   text-decoration-thickness: 1.5px;
 }
 .dinv-void-stamp {
@@ -445,26 +445,26 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotate(-14deg);
-  padding: 12px 36px;
-  border: 4px double var(--accent-error, #E8B4B4);
-  border-radius: 8px;
-  color: var(--accent-error, #E8B4B4);
-  background: color-mix(in srgb, var(--bg-surface, #FFFFFF) 70%, transparent);
+  padding: var(--space-3) var(--space-10);
+  border: 4px double var(--color-error);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-snow) 70%, transparent);
   pointer-events: none;
   z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   text-align: center;
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: var(--font-display);
   opacity: 0.92;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
 .dinv-void-stamp-text {
-  font-size: clamp(28px, 6vw, 44px);
-  font-weight: 800;
+  font-size: 36px;
+  font-weight: 700;
   letter-spacing: 0.18em;
   line-height: 1;
 }

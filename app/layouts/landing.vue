@@ -51,12 +51,11 @@ const navLinks = [
 
 <style scoped>
 .landing-root {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, 'Helvetica Neue', sans-serif;
+  background: var(--color-snow);
+  color: var(--color-ink);
+  font-family: var(--font-text);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-feature-settings: 'ss01', 'cv11';
   line-height: 1.4;
   min-height: 100vh;
 }
@@ -68,84 +67,74 @@ nav.top {
   z-index: 50;
   backdrop-filter: saturate(1.4) blur(20px);
   -webkit-backdrop-filter: saturate(1.4) blur(20px);
-  background: color-mix(in srgb, var(--bg) 78%, transparent);
-  border-bottom: var(--hairline) solid var(--line-2);
+  background: color-mix(in srgb, var(--color-snow) 80%, transparent);
+  border-bottom: 1px solid var(--color-mist);
 }
 .inner {
-  max-width: var(--max);
+  max-width: var(--layout-max);
   margin: 0 auto;
-  padding: 14px var(--pad);
+  padding: var(--space-4) var(--space-8);
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: var(--space-5);
 }
 .logo {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--space-2);
   font-weight: 600;
   letter-spacing: -0.02em;
-  font-size: 16px;
-  color: var(--ink);
+  font-size: var(--text-body);
+  color: var(--color-ink);
 }
 .logo-img {
   height: 28px;
   width: auto;
   display: block;
 }
-.logo .dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--ink);
-  display: inline-block;
-  position: relative;
-}
-.logo .dot::after {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border-radius: 50%;
-  border: 1.5px solid var(--bg);
-}
 .nav-links {
   display: flex;
-  gap: 28px;
-  margin-left: 32px;
+  gap: var(--space-8);
+  margin-left: var(--space-8);
   flex: 1;
 }
 .nav-links a {
-  color: var(--ink-2);
-  font-size: 13.5px;
-  font-weight: 450;
-  letter-spacing: -0.005em;
-  transition: color 0.15s;
+  color: var(--color-slate);
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  letter-spacing: -0.04px;
+  transition: color var(--transition);
 }
 .nav-links a:hover {
-  color: var(--ink);
+  color: var(--color-ink);
+  text-decoration: none;
 }
 .nav-cta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
-  font-weight: 500;
-  padding: 7px 14px;
-  background: var(--ink);
-  color: var(--accent-ink);
-  border-radius: 999px;
-  letter-spacing: -0.005em;
-  transition: transform 0.18s, opacity 0.18s;
+  gap: var(--space-1);
+  font-size: var(--text-body-sm);
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-action);
+  color: var(--color-snow);
+  border-radius: var(--radius-pill);
+  letter-spacing: -0.04px;
+  transition: background var(--transition);
 }
 .nav-cta:hover {
-  transform: scale(0.97);
+  background: var(--color-action-hover);
+  text-decoration: none;
 }
 .nav-signin {
-  font-size: 13.5px;
-  color: var(--ink);
-  font-weight: 450;
+  font-size: var(--text-body-sm);
+  color: var(--color-ink);
+  font-weight: 500;
 }
-@media (max-width: 720px) {
+.nav-signin:hover {
+  text-decoration: none;
+}
+@media (max-width: 768px) {
   .nav-links {
     display: none;
   }
@@ -153,38 +142,39 @@ nav.top {
 
 /* ============ FOOTER ============ */
 footer {
-  padding: 56px var(--pad) 40px;
-  border-top: 1px solid var(--line);
-  background: var(--bg);
+  padding: var(--space-12) var(--space-8) var(--space-10);
+  border-top: 1px solid var(--color-mist);
+  background: var(--color-snow);
 }
 .foot-inner {
-  max-width: var(--max);
+  max-width: var(--layout-max);
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 24px;
+  gap: var(--space-6);
   font-size: 13px;
-  color: var(--ink-3);
-  letter-spacing: -0.005em;
+  color: var(--color-graphite);
+  letter-spacing: -0.04px;
 }
 .foot-logo {
-  font-size: 14px;
+  font-size: var(--text-body-sm);
 }
 .foot-logo-img {
   height: 22px;
 }
 .foot-links {
   display: flex;
-  gap: 28px;
+  gap: var(--space-8);
   flex-wrap: wrap;
 }
 .foot-links a {
-  color: var(--ink-3);
-  transition: color 0.15s;
+  color: var(--color-graphite);
+  transition: color var(--transition);
 }
 .foot-links a:hover {
-  color: var(--ink);
+  color: var(--color-ink);
+  text-decoration: none;
 }
 </style>

@@ -234,12 +234,12 @@ async function voidInvoice(inv: InvoiceRow) {
     <div class="topbar">
       <h1>Invoices</h1>
       <div class="actions">
-        <button class="btn-hifi btn-ghost btn-sm" @click="refresh()">Refresh</button>
-        <button class="btn-hifi btn-sm" @click="openExport">
+        <button class="btn btn-ghost btn-sm" @click="refresh()">Refresh</button>
+        <button class="btn btn-sm" @click="openExport">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg>
           Export
         </button>
-        <NuxtLink to="/app/scan" class="btn-hifi btn-primary btn-sm">+ New scan</NuxtLink>
+        <NuxtLink to="/app/scan" class="btn btn-primary btn-sm">+ New scan</NuxtLink>
       </div>
     </div>
 
@@ -259,7 +259,7 @@ async function voidInvoice(inv: InvoiceRow) {
       <div v-else-if="!pending && (!data || data.length === 0)" class="state empty">
         <div class="empty-title">No invoices yet</div>
         <div class="empty-hint">Upload your first receipt to get started.</div>
-        <NuxtLink to="/app/scan" class="btn-hifi btn-primary btn-sm">+ New scan</NuxtLink>
+        <NuxtLink to="/app/scan" class="btn btn-primary btn-sm">+ New scan</NuxtLink>
       </div>
 
       <div v-else class="inv-cards">
@@ -344,13 +344,13 @@ async function voidInvoice(inv: InvoiceRow) {
             <footer class="export-foot">
               <button
                 type="button"
-                class="btn-hifi btn-ghost btn-sm"
+                class="btn btn-ghost btn-sm"
                 :disabled="exportLoading"
                 @click="closeExport"
               >Cancel</button>
               <button
                 type="submit"
-                class="btn-hifi btn-primary btn-sm"
+                class="btn btn-primary btn-sm"
                 :disabled="exportLoading"
               >
                 <template v-if="exportLoading">Generating…</template>
@@ -367,14 +367,14 @@ async function voidInvoice(inv: InvoiceRow) {
 <style scoped>
 .topbar {
   padding: 20px 36px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-mist);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  background: color-mix(in srgb, var(--color-snow) 80%, transparent);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   z-index: 5;
@@ -385,9 +385,9 @@ async function voidInvoice(inv: InvoiceRow) {
 .route { padding: 36px; }
 
 .crumb {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-bottom: 16px;
@@ -400,10 +400,10 @@ async function voidInvoice(inv: InvoiceRow) {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  background: var(--surface);
-  border-radius: var(--radius);
+  background: var(--color-fog);
+  border-radius: var(--radius-lg);
 }
-.state.error { color: var(--ink-2); margin-bottom: 16px; }
+.state.error { color: var(--color-slate); margin-bottom: 16px; }
 .empty-title {
   font-size: 18px;
   font-weight: 600;
@@ -411,7 +411,7 @@ async function voidInvoice(inv: InvoiceRow) {
 }
 .empty-hint {
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   margin-bottom: 12px;
 }
 
@@ -421,9 +421,9 @@ async function voidInvoice(inv: InvoiceRow) {
   gap: 16px;
 }
 .inv-card {
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
   padding: 16px;
   color: inherit;
   transition: transform 0.18s, border-color 0.15s, opacity 0.15s;
@@ -431,10 +431,10 @@ async function voidInvoice(inv: InvoiceRow) {
   flex-direction: column;
   gap: 12px;
 }
-.inv-card:hover { transform: translateY(-2px); border-color: var(--ink-4); }
+.inv-card:hover { transform: translateY(-2px); border-color: var(--color-mist); }
 .inv-card.voided {
   opacity: 0.65;
-  background: var(--surface);
+  background: var(--color-fog);
 }
 .inv-card.voided:hover { opacity: 0.85; }
 
@@ -445,7 +445,7 @@ async function voidInvoice(inv: InvoiceRow) {
 }
 .inv-card .thumb {
   aspect-ratio: 4 / 3;
-  background: var(--surface);
+  background: var(--color-fog);
   border-radius: 6px;
   margin-bottom: 12px;
   position: relative;
@@ -469,9 +469,9 @@ async function voidInvoice(inv: InvoiceRow) {
   position: absolute;
   top: 8px;
   left: 8px;
-  background: var(--ink);
-  color: var(--bg);
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  background: var(--color-ink);
+  color: var(--color-snow);
+  font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.12em;
   padding: 3px 7px;
@@ -484,7 +484,7 @@ async function voidInvoice(inv: InvoiceRow) {
   letter-spacing: -0.015em;
   line-height: 1.2;
 }
-.inv-card.voided .name { text-decoration: line-through; text-decoration-color: var(--ink-3); }
+.inv-card.voided .name { text-decoration: line-through; text-decoration-color: var(--color-graphite); }
 .inv-card .row {
   display: flex;
   justify-content: space-between;
@@ -492,35 +492,35 @@ async function voidInvoice(inv: InvoiceRow) {
   margin-top: 6px;
 }
 .inv-card .row .date {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 .inv-card .row .amt {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
 }
-.inv-card.voided .row .amt { text-decoration: line-through; color: var(--ink-3); }
+.inv-card.voided .row .amt { text-decoration: line-through; color: var(--color-graphite); }
 
 .void-btn {
   margin-top: auto;
   width: 100%;
   padding: 7px 10px;
   background: transparent;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-mist);
   border-radius: 6px;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.04em;
-  color: var(--ink-2);
+  color: var(--color-slate);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .void-btn:hover:not(:disabled) {
-  background: var(--surface);
-  border-color: var(--ink-4);
-  color: var(--ink);
+  background: var(--color-fog);
+  border-color: var(--color-mist);
+  color: var(--color-ink);
 }
 .void-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -528,13 +528,13 @@ async function voidInvoice(inv: InvoiceRow) {
   margin-top: auto;
   width: 100%;
   padding: 7px 10px;
-  background: var(--surface);
-  border: 1px dashed var(--line-2, var(--line));
+  background: var(--color-fog);
+  border: 1px dashed var(--color-mist);
   border-radius: 6px;
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.04em;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   text-align: center;
   user-select: none;
 }
@@ -558,14 +558,13 @@ async function voidInvoice(inv: InvoiceRow) {
   to { opacity: 1; }
 }
 .export-modal {
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, 'Helvetica Neue', sans-serif;
-  color: var(--ink);
+  font-family: var(--font-text);
+  color: var(--color-ink);
   animation: export-pop 0.18s ease-out;
 }
 @keyframes export-pop {
@@ -578,12 +577,12 @@ async function voidInvoice(inv: InvoiceRow) {
   justify-content: space-between;
   gap: 12px;
   padding: 22px 22px 14px;
-  border-bottom: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--color-mist);
 }
 .export-eyebrow {
   font-size: 10px;
   letter-spacing: 0.12em;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   margin-bottom: 4px;
 }
 .export-head h2 {
@@ -600,18 +599,18 @@ async function voidInvoice(inv: InvoiceRow) {
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-mist);
   border-radius: 6px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .export-close:hover:not(:disabled) {
-  background: var(--surface);
-  color: var(--ink);
-  border-color: var(--ink-4);
+  background: var(--color-fog);
+  color: var(--color-ink);
+  border-color: var(--color-mist);
 }
 .export-close:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -625,23 +624,23 @@ async function voidInvoice(inv: InvoiceRow) {
 .export-label {
   font-size: 10px;
   letter-spacing: 0.12em;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 .export-input {
   width: 100%;
   padding: 9px 12px;
-  background: var(--bg);
-  border: 1px solid var(--line);
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
   border-radius: 8px;
   font-family: inherit;
   font-size: 13.5px;
-  color: var(--ink);
+  color: var(--color-ink);
   letter-spacing: -0.005em;
   outline: none;
   transition: background 0.15s, border-color 0.15s;
 }
-.export-input:hover { background: var(--surface); }
-.export-input:focus { background: var(--bg); border-color: var(--ink); }
+.export-input:hover { background: var(--color-fog); }
+.export-input:focus { background: var(--color-snow); border-color: var(--color-ink); }
 .export-range {
   display: flex;
   align-items: center;
@@ -649,17 +648,17 @@ async function voidInvoice(inv: InvoiceRow) {
 }
 .export-range .export-input { flex: 1; min-width: 0; }
 .export-sep {
-  font-family: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--ink-3);
+  color: var(--color-graphite);
 }
 .export-err {
   margin: 0;
   padding: 10px 12px;
-  background: var(--accent-error, #E8B4B4);
+  background: var(--color-error);
   border-radius: 8px;
   font-size: 12.5px;
-  color: var(--ink);
+  color: var(--color-ink);
 }
 .export-foot {
   display: flex;
