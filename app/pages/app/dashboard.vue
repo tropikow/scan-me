@@ -364,6 +364,102 @@ const recent = computed(() =>
     amt: formatAmount(row.total, row.currency),
   })),
 )
+
+// ─── Financial report (PDF export) ────────────────────────────────────────
+type RangePreset = 'all' | 'ytd' | 'month' | 'last3' | 'custom'
+
+const reportOpen = ref(false)
+const reportLoading = ref(false)
+const reportError = ref<string | null>(null)
+const rangePreset = ref<RangePreset>('all')
+const rangeFrom = ref('')
+const rangeTo = ref('')
+
+function openReport() {
+  reportError.value = null
+  reportOpen.value = true
+}
+function closeReport() {
+  if (reportLoading.value) return
+  reportOpen.value = false
+}
+
+function resolveRange(): { fromISO: string | null; toISO: string | null; label: string } {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = now.getMonth()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const isoDay = (d: Date, end: boolean) =>
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${end ? '23:59:59.999Z' : '00:00:00.000Z'}`
+
+  switch (rangePreset.value) {
+    case 'all':
+      return { fromISO: null, toISO: null, label: 'All time' }
+    case 'ytd':
+      return {
+        fromISO: new Date(y, 0, 1).toISOString(),
+        toISO: now.toISOString(),
+        label: `Year to date · ${y}`,
+      }
+    case 'month':
+      return {
+        fromISO: new Date(y, m, 1).toISOString(),
+        toISO: now.toISOString(),
+        label: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      }
+    case 'last3':
+      return {
+        fromISO: new Date(y, m - 2, 1).toISOString(),
+        toISO: now.toISOString(),
+        label: 'Last 3 months',
+      }
+    case 'custom': {
+      const f = rangeFrom.value ? new Date(`${rangeFrom.value}T00:00:00`) : null
+      const t = rangeTo.value ? new Date(`${rangeTo.value}T23:59:59.999`) : null
+      const lblFrom = f ? `${pad(f.getDate())}/${pad(f.getMonth() + 1)}/${f.getFullYear()}` : '…'
+      const lblTo = t ? `${pad(t.getDate())}/${pad(t.getMonth() + 1)}/${t.getFullYear()}` : '…'
+      return {
+        fromISO: f ? isoDay(f, false) : null,
+        toISO: t ? isoDay(t, true) : null,
+        label: `${lblFrom} → ${lblTo}`,
+      }
+    }
+  }
+}
+
+async function runReport() {
+  reportLoading.value = true
+  reportError.value = null
+  try {
+    if (rangePreset.value === 'custom' && !rangeFrom.value && !rangeTo.value) {
+      reportError.value = 'Pick a date range or choose a preset.'
+      return
+    }
+    const { build } = useFinancialReport()
+    const { render, downloadPdf } = useFinancialReportPdf()
+    const period = resolveRange()
+    const report = await build(period)
+    if (report.totals.invoiceCount === 0) {
+      reportError.value = 'No invoices in the selected period.'
+      return
+    }
+    const blob = render(report)
+    const today = new Date().toISOString().slice(0, 10)
+    const slug = period.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    downloadPdf(blob, `scan-me-report-${slug || 'all'}-${today}.pdf`)
+    reportOpen.value = false
+  } catch (e) {
+    reportError.value = e instanceof Error ? e.message : 'Report generation failed.'
+  } finally {
+    reportLoading.value = false
+  }
+}
+
+function onReportKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && reportOpen.value) closeReport()
+}
+onMounted(() => document.addEventListener('keydown', onReportKeydown))
+onBeforeUnmount(() => document.removeEventListener('keydown', onReportKeydown))
 </script>
 
 <template>
@@ -371,7 +467,7 @@ const recent = computed(() =>
     <div class="topbar">
       <h1>Dashboard</h1>
       <div class="actions">
-        <button class="btn btn-ghost btn-sm">↓ Export</button>
+        <button class="btn btn-ghost btn-sm" @click="openReport">↓ Export</button>
         <NuxtLink to="/app/scan" class="btn btn-primary btn-sm">+ New scan</NuxtLink>
       </div>
     </div>
@@ -451,6 +547,86 @@ const recent = computed(() =>
           </div>
         </div>
       </div>
+
+      <Teleport to="body">
+        <div v-if="reportOpen" class="report-overlay" @click.self="closeReport">
+          <div class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title">
+            <header class="report-head">
+              <div>
+                <div class="report-eyebrow mono">FINANCIAL REPORT</div>
+                <h2 id="report-title">Download PDF</h2>
+                <p class="report-sub">
+                  KPIs, monthly trend, top vendors / categories / people, largest &amp; smallest invoices,
+                  line-item analysis. Built for accountants.
+                </p>
+              </div>
+              <button
+                type="button"
+                class="report-close"
+                aria-label="Close"
+                :disabled="reportLoading"
+                @click="closeReport"
+              >×</button>
+            </header>
+
+            <form class="report-body" @submit.prevent="runReport">
+              <div class="report-field">
+                <label class="report-label mono">PERIOD</label>
+                <div class="preset-grid">
+                  <label
+                    v-for="opt in [
+                      { v: 'all', t: 'All time' },
+                      { v: 'ytd', t: 'Year to date' },
+                      { v: 'month', t: 'This month' },
+                      { v: 'last3', t: 'Last 3 months' },
+                      { v: 'custom', t: 'Custom range' },
+                    ]"
+                    :key="opt.v"
+                    class="preset"
+                    :class="{ active: rangePreset === opt.v }"
+                  >
+                    <input
+                      v-model="rangePreset"
+                      type="radio"
+                      name="rangePreset"
+                      :value="opt.v"
+                    />
+                    <span>{{ opt.t }}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div v-if="rangePreset === 'custom'" class="report-field">
+                <label class="report-label mono">CUSTOM RANGE (BY SCAN DATE)</label>
+                <div class="report-range">
+                  <input v-model="rangeFrom" type="date" class="report-input" />
+                  <span class="report-sep">→</span>
+                  <input v-model="rangeTo" type="date" class="report-input" />
+                </div>
+              </div>
+
+              <p v-if="reportError" class="report-err">{{ reportError }}</p>
+
+              <footer class="report-foot">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm"
+                  :disabled="reportLoading"
+                  @click="closeReport"
+                >Cancel</button>
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-sm"
+                  :disabled="reportLoading"
+                >
+                  <template v-if="reportLoading">Generating PDF…</template>
+                  <template v-else>↓ Download .pdf</template>
+                </button>
+              </footer>
+            </form>
+          </div>
+        </div>
+      </Teleport>
 
       <NuxtLink to="/app/scan" class="drop-zone">
         <div class="ico-big">
@@ -749,5 +925,171 @@ const recent = computed(() =>
   .chart-card { padding: 18px 18px 10px; }
   .chart { height: 160px; }
   .chart-empty { height: 160px; }
+}
+</style>
+
+<style>
+/* Unscoped: teleported to <body>, scoped styles wouldn't reach it. */
+.report-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  animation: report-fade 0.18s ease-out;
+}
+@keyframes report-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.report-modal {
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 460px;
+  font-family: var(--font-text);
+  color: var(--color-ink);
+  animation: report-pop 0.18s ease-out;
+}
+@keyframes report-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+.report-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px 22px 14px;
+  border-bottom: 1px solid var(--color-mist);
+}
+.report-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--color-graphite);
+  margin-bottom: 4px;
+}
+.report-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.report-sub {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-graphite);
+}
+.report-close {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-mist);
+  border-radius: 6px;
+  color: var(--color-graphite);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.report-close:hover:not(:disabled) {
+  background: var(--color-fog);
+  color: var(--color-ink);
+}
+.report-close:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.report-body {
+  padding: 18px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.report-field { display: flex; flex-direction: column; gap: 8px; }
+.report-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--color-graphite);
+}
+.preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.preset {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-mist);
+  border-radius: 8px;
+  background: var(--color-snow);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  user-select: none;
+}
+.preset:hover { background: var(--color-fog); }
+.preset input { accent-color: var(--color-action); }
+.preset.active {
+  border-color: var(--color-ink);
+  background: var(--color-fog);
+}
+.report-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--color-ink);
+  outline: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.report-input:hover { background: var(--color-fog); }
+.report-input:focus { background: var(--color-snow); border-color: var(--color-ink); }
+.report-range {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.report-range .report-input { flex: 1; min-width: 0; }
+.report-sep {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-graphite);
+}
+.report-err {
+  margin: 0;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--color-error);
+}
+.report-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .report-overlay { padding: 12px; align-items: flex-end; }
+  .report-modal { max-width: 100%; }
+  .preset-grid { grid-template-columns: 1fr; }
+  .report-range { flex-direction: column; align-items: stretch; }
+  .report-sep { display: none; }
 }
 </style>
