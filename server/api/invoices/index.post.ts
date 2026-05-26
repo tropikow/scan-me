@@ -3,32 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import {
   serverSupabaseClient,
   serverSupabaseSession,
-  serverSupabaseUser
+  serverSupabaseUser,
 } from '#supabase/server'
-
-const MAX_BYTES = 10 * 1024 * 1024
-
-type SniffedMime = 'image/jpeg' | 'image/png' | 'image/webp' | null
-
-function sniffImageMime(buf: Buffer): SniffedMime {
-  if (buf.length < 12) return null
-  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg'
-  if (
-    buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47 &&
-    buf[4] === 0x0d && buf[5] === 0x0a && buf[6] === 0x1a && buf[7] === 0x0a
-  ) return 'image/png'
-  if (
-    buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 &&
-    buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50
-  ) return 'image/webp'
-  return null
-}
-
-const MIME_TO_EXT: Record<NonNullable<SniffedMime>, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp'
-}
 
 type IncomingItem = {
   description?: unknown
@@ -54,40 +30,6 @@ type IncomingPayload = {
   person_id?: unknown
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-function toUuid(v: unknown): string | null {
-  if (typeof v !== 'string') return null
-  const s = v.trim()
-  return UUID_RE.test(s) ? s.toLowerCase() : null
-}
-
-function toStr(v: unknown, max = 500): string | null {
-  if (typeof v !== 'string') return null
-  const s = v.trim()
-  if (!s) return null
-  return s.slice(0, max)
-}
-function toNum(v: unknown): number | null {
-  if (typeof v === 'number' && Number.isFinite(v)) return v
-  if (typeof v === 'string' && v.trim() !== '') {
-    const n = Number(v)
-    return Number.isFinite(n) ? n : null
-  }
-  return null
-}
-function toDate(v: unknown): string | null {
-  if (typeof v !== 'string') return null
-  const m = v.match(/^\d{4}-\d{2}-\d{2}$/)
-  return m ? v : null
-}
-function toTags(v: unknown): string[] {
-  if (!Array.isArray(v)) return []
-  return v
-    .map((t) => (typeof t === 'string' ? t.trim().slice(0, 40) : null))
-    .filter((t): t is string => !!t)
-    .slice(0, 20)
-}
-
 export default defineEventHandler(async (event) => {
   const claims = await serverSupabaseUser(event)
   const userId = (claims as { sub?: string } | null)?.sub
@@ -106,7 +48,7 @@ export default defineEventHandler(async (event) => {
   if (!filePart || !filePart.data || filePart.data.length === 0) {
     throw createError({ statusCode: 400, statusMessage: 'Missing image file' })
   }
-  if (filePart.data.length > MAX_BYTES) {
+  if (filePart.data.length > MAX_IMAGE_BYTES) {
     throw createError({ statusCode: 413, statusMessage: 'Image too large (max 10 MB)' })
   }
   const mime = sniffImageMime(filePart.data)
@@ -133,11 +75,11 @@ export default defineEventHandler(async (event) => {
   const supabasePublic = (runtimeConfig.public as { supabase: { url: string; key: string } }).supabase
 
   // Storage REST requires the user's JWT in the Authorization header for RLS to
-  // evaluate auth.uid() correctly. We build a dedicated client that pins the token,
-  // because the SSR-cookie-based client doesn't always forward it to storage calls.
+  // evaluate auth.uid() correctly. The SSR-cookie-based client doesn't always
+  // forward it to storage calls, so we build a dedicated client that pins the token.
   const storageClient = createClient(supabasePublic.url, supabasePublic.key, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    global: { headers: { Authorization: `Bearer ${session.access_token}` } }
+    global: { headers: { Authorization: `Bearer ${session.access_token}` } },
   })
 
   const invoiceId = randomUUID()
@@ -150,16 +92,15 @@ export default defineEventHandler(async (event) => {
   if (uploadErr) {
     console.error('[invoices] storage upload failed', {
       err: uploadErr.message,
-      userId: userId,
-      path: objectPath
+      userId,
+      path: objectPath,
     })
     throw createError({ statusCode: 502, statusMessage: 'Failed to store image' })
   }
 
-  // Resolve and validate the optional person link. RLS on `people` ensures
-  // the lookup only matches rows owned by the current user, so cross-tenant
-  // assignment is impossible even if the client tampers with the UUID.
-  let personId: string | null = toUuid(payload.person_id)
+  // RLS on `people` scopes this lookup to the caller, so a tampered UUID
+  // cannot cross-link an invoice to another tenant's person.
+  const personId: string | null = toUuid(payload.person_id)
   if (personId) {
     const { data: personRow, error: personErr } = await supabase
       .from('people')
@@ -187,7 +128,7 @@ export default defineEventHandler(async (event) => {
     notes: toStr(payload.notes, 2000),
     tags: toTags(payload.tags),
     image_path: objectPath,
-    person_id: personId
+    person_id: personId,
   }
 
   const { error: insertErr } = await supabase.from('invoices').insert(invoiceRow)
@@ -209,7 +150,7 @@ export default defineEventHandler(async (event) => {
         description,
         quantity: toNum(it.quantity),
         unit_price: toNum(it.unit_price),
-        amount
+        amount,
       }
     })
     .filter((r): r is NonNullable<typeof r> => r !== null)

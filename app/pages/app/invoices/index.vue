@@ -26,7 +26,6 @@ const { data, pending, error, refresh } = await useAsyncData('invoices-list', as
   return (data ?? []) as InvoiceRow[]
 })
 
-// ─── Export (CSV) ─────────────────────────────────────────────────────────
 type PersonOpt = { id: string; name: string }
 
 const exportOpen = ref(false)
@@ -190,22 +189,6 @@ function onExportKeydown(e: KeyboardEvent) {
 onMounted(() => document.addEventListener('keydown', onExportKeydown))
 onBeforeUnmount(() => document.removeEventListener('keydown', onExportKeydown))
 
-function formatDate(iso: string | null, fallback: string): string {
-  const src = iso || fallback
-  const d = new Date(src)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d
-    .toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
-    .toUpperCase()
-}
-
-function formatAmount(n: number | null, currency: string | null): string {
-  if (n == null) return '—'
-  const symbol =
-    currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
-  return `${symbol} ${n.toFixed(2)}`.trim()
-}
-
 async function voidInvoice(inv: InvoiceRow) {
   if (updatingId.value || inv.voided_at) return
   const ok = window.confirm(
@@ -275,7 +258,7 @@ async function voidInvoice(inv: InvoiceRow) {
             </div>
             <div class="name">{{ inv.vendor || 'Untitled' }}</div>
             <div class="row">
-              <span class="date">{{ formatDate(inv.invoice_date, inv.created_at) }}</span>
+              <span class="date">{{ formatShortDate(inv.invoice_date, inv.created_at) }}</span>
               <span class="amt">{{ formatAmount(inv.total, inv.currency) }}</span>
             </div>
           </NuxtLink>

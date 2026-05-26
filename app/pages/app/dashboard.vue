@@ -13,17 +13,17 @@ function startOfWeekISO(): string {
   return monday.toISOString()
 }
 
-const _now = new Date()
-const curMonthStart = new Date(_now.getFullYear(), _now.getMonth(), 1).toISOString()
-const nextMonthStart = new Date(_now.getFullYear(), _now.getMonth() + 1, 1).toISOString()
-const prevMonthStart = new Date(_now.getFullYear(), _now.getMonth() - 1, 1).toISOString()
-const prevMonthLabel = new Date(_now.getFullYear(), _now.getMonth() - 1, 1)
+const now = new Date()
+const curMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString()
+const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
+const prevMonthLabel = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   .toLocaleDateString('en-US', { month: 'long' })
   .toUpperCase()
 
-const daysInCurMonth = new Date(_now.getFullYear(), _now.getMonth() + 1, 0).getDate()
-const curMonthLabel = _now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-const curDayOfMonth = _now.getDate()
+const daysInCurMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+const curMonthLabel = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+const curDayOfMonth = now.getDate()
 
 const { data: monthSpend } = await useAsyncData(
   'dashboard-month-spend',
@@ -146,24 +146,9 @@ const { data: topCategory } = await useAsyncData(
     for (const i of (invRes.data ?? []) as { id: string; total: number | null }[]) {
       invoiceTotals.set(i.id, Number(i.total ?? 0))
     }
-    const collById = new Map<string, CollNode>()
-    for (const c of (collRes.data ?? []) as CollNode[]) collById.set(c.id, c)
-    const rootCache = new Map<string, string | null>()
-    const rootOf = (id: string): string | null => {
-      const cached = rootCache.get(id)
-      if (cached !== undefined) return cached
-      let cur = collById.get(id)
-      let safety = 0
-      while (cur && cur.parent_id && safety < 50) {
-        const next = collById.get(cur.parent_id)
-        if (!next) break
-        cur = next
-        safety++
-      }
-      const rootId = cur?.id ?? null
-      rootCache.set(id, rootId)
-      return rootId
-    }
+    const collRows = (collRes.data ?? []) as CollNode[]
+    const collById = new Map(collRows.map((c) => [c.id, c] as const))
+    const rootOf = buildCollectionRootResolver(collRows)
     const totalByRoot = new Map<string, number>()
     const seenByRoot = new Map<string, Set<string>>()
     type LinkRow = { invoice_id: string; collection_id: string }
@@ -339,33 +324,16 @@ function initialsFor(vendor: string | null): string {
   return (parts[0]![0]! + parts[1]![0]!).toUpperCase()
 }
 
-function formatMetaDate(iso: string | null, fallback: string): string {
-  const src = iso || fallback
-  const d = new Date(src)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d
-    .toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
-    .toUpperCase()
-}
-
-function formatAmount(n: number | null, currency: string | null): string {
-  if (n == null) return '—'
-  const symbol =
-    currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
-  return `${symbol} ${n.toFixed(2)}`.trim()
-}
-
 const recent = computed(() =>
   (recentRows.value ?? []).map((row) => ({
     id: row.id,
     code: initialsFor(row.vendor),
     name: row.vendor || 'Unknown vendor',
-    meta: `${formatMetaDate(row.invoice_date, row.created_at)} · ${row.currency || '—'}`,
+    meta: `${formatShortDate(row.invoice_date, row.created_at)} · ${row.currency || '—'}`,
     amt: formatAmount(row.total, row.currency),
   })),
 )
 
-// ─── Financial report (PDF export) ────────────────────────────────────────
 type RangePreset = 'all' | 'ytd' | 'month' | 'last3' | 'custom'
 
 const reportOpen = ref(false)

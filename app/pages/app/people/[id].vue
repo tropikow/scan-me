@@ -78,7 +78,6 @@ const { data: collectionLinks } = await useAsyncData(
 
 useHead({ title: () => `scan-me — ${person.value?.name ?? 'person'}` })
 
-// === Share link ============================================================
 const shareLink = computed(() => {
   const token = person.value?.share_token
   if (!token) return ''
@@ -125,35 +124,22 @@ async function regenerateShareLink() {
   await refreshPerson()
 }
 
-function symbolFor(currency: string | null | undefined): string {
-  return currency === 'EUR'
-    ? '€'
-    : currency === 'USD'
-    ? '$'
-    : currency === 'GBP'
-    ? '£'
-    : currency || '€'
-}
-
-const currencySymbol = computed(() => {
-  const counts: Record<string, number> = {}
+const dominantSymbol = computed(() => {
+  const counts = new Map<string, number>()
   for (const i of invoices.value) {
     const c = i.currency ?? ''
-    counts[c] = (counts[c] ?? 0) + 1
+    counts.set(c, (counts.get(c) ?? 0) + 1)
   }
   let best = ''
   let bestN = 0
-  for (const [k, n] of Object.entries(counts)) {
-    if (n > bestN) {
-      best = k
-      bestN = n
-    }
+  for (const [k, n] of counts) {
+    if (n > bestN) { best = k; bestN = n }
   }
-  return symbolFor(best || null)
+  return currencySymbol(best) || '€'
 })
 
 function fmtMoney(n: number): string {
-  return `${currencySymbol.value} ${Math.round(n).toLocaleString('en-US')}`
+  return `${dominantSymbol.value} ${Math.round(n).toLocaleString('en-US')}`
 }
 
 function initialOf(name: string | null | undefined): string {
@@ -244,20 +230,6 @@ const breakdown = computed<BdRow[]>(() => {
   }))
 })
 
-function formatCardDate(iso: string | null, fallback: string): string {
-  const src = iso || fallback
-  if (!src) return '—'
-  const d = new Date(src)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d
-    .toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
-    .toUpperCase()
-}
-
-function formatCardAmount(n: number | null, currency: string | null): string {
-  if (n == null) return '—'
-  return `${symbolFor(currency)} ${Number(n).toFixed(2)}`.trim()
-}
 </script>
 
 <template>
@@ -350,8 +322,8 @@ function formatCardAmount(n: number | null, currency: string | null): string {
               <div class="thumb" />
               <div class="name">{{ r.vendor || 'Untitled' }}</div>
               <div class="row">
-                <span class="date">{{ formatCardDate(r.invoice_date, r.created_at) }}</span>
-                <span class="amt">{{ formatCardAmount(r.total, r.currency) }}</span>
+                <span class="date">{{ formatShortDate(r.invoice_date, r.created_at) }}</span>
+                <span class="amt">{{ formatAmount(r.total, r.currency) }}</span>
               </div>
             </NuxtLink>
           </div>

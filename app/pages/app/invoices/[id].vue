@@ -71,24 +71,6 @@ useHead({
   title: () => `scan-me — ${data.value?.invoice?.vendor || 'invoice'}`
 })
 
-function formatDate(iso: string | null, fallback?: string): string {
-  const src = iso || fallback || ''
-  if (!src) return '—'
-  const d = new Date(src)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d
-    .toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
-    .toUpperCase()
-}
-
-function symbolFor(currency: string | null): string {
-  return currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
-}
-function fmt(n: number | null, currency: string | null): string {
-  if (n == null) return '—'
-  const s = symbolFor(currency)
-  return `${s} ${n.toFixed(2)}`.trim()
-}
 function fmtPlain(n: number | null): string {
   return n == null ? '—' : n.toFixed(2)
 }
@@ -165,9 +147,9 @@ function downloadPdf() {
         <div class="inv-meta">
           <span class="card-eyebrow">INVOICE · #{{ data.invoice.id.slice(0, 8) }}</span>
           <h2 class="merchant">{{ data.invoice.vendor || 'Untitled' }}</h2>
-          <div class="bigamt">{{ fmt(data.invoice.total, data.invoice.currency) }}</div>
+          <div class="bigamt">{{ formatAmount(data.invoice.total, data.invoice.currency) }}</div>
           <div class="submeta">
-            {{ formatDate(data.invoice.invoice_date, data.invoice.created_at) }}
+            {{ formatLongDate(data.invoice.invoice_date, data.invoice.created_at) }}
             <template v-if="data.invoice.vendor_address"> · {{ data.invoice.vendor_address }}</template>
             <template v-if="data.invoice.invoice_number"> · №{{ data.invoice.invoice_number }}</template>
           </div>
@@ -204,7 +186,7 @@ function downloadPdf() {
               </tr>
               <tr class="total">
                 <td colspan="3">Total</td>
-                <td class="r">{{ fmt(data.invoice.total, data.invoice.currency) }}</td>
+                <td class="r">{{ formatAmount(data.invoice.total, data.invoice.currency) }}</td>
               </tr>
             </tbody>
           </table>

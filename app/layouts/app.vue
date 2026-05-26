@@ -45,7 +45,6 @@ const { data: peopleCount } = await useAsyncData(
   { default: () => 0, watch: [user] },
 )
 
-// ─── Sidebar search ───────────────────────────────────────────────────────
 type PersonHit = { id: string; name: string; role: string }
 type InvoiceHit = {
   id: string
@@ -68,6 +67,7 @@ let searchSeq = 0
 function escapeLike(s: string): string {
   return s.replace(/[\\%_]/g, (c) => `\\${c}`)
 }
+
 
 async function runSearch(raw: string) {
   const q = raw.trim()
@@ -137,13 +137,6 @@ function onClickOutside(e: MouseEvent) {
 const hasResults = computed(
   () => peopleHits.value.length > 0 || invoiceHits.value.length > 0,
 )
-
-const formatAmount = (n: number | null, currency: string | null) => {
-  if (n == null) return ''
-  const sym =
-    currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
-  return `${sym} ${n.toFixed(2)}`.trim()
-}
 
 const mobileNavOpen = ref(false)
 
@@ -261,7 +254,7 @@ async function signOut() {
                 <span class="sb-search-avatar mono">{{ (inv.vendor || '·').charAt(0).toUpperCase() }}</span>
                 <span class="sb-search-text">
                   <span class="sb-search-name">{{ inv.vendor || 'Untitled' }}</span>
-                  <span class="sb-search-meta mono">{{ formatAmount(inv.total, inv.currency) }}</span>
+                  <span class="sb-search-meta mono">{{ inv.total != null ? formatAmount(inv.total, inv.currency) : '' }}</span>
                 </span>
               </NuxtLink>
             </div>

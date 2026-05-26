@@ -68,20 +68,16 @@ const statsByPerson = computed<Map<string, Stat>>(() => {
   return m
 })
 
-function symbolFor(currency: string): string {
-  return currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || '€'
-}
-
 function amtFor(personId: string): string {
   const s = statsByPerson.value.get(personId)
   if (!s || s.count === 0) return '—'
-  return `${symbolFor(s.currency)} ${Math.round(s.total).toLocaleString('en-US')}`
+  const sym = currencySymbol(s.currency) || '€'
+  return `${sym} ${Math.round(s.total).toLocaleString('en-US')}`
 }
 
 function countFor(personId: string): string {
-  const s = statsByPerson.value.get(personId)
-  const n = s?.count ?? 0
-  return `${n} ${n === 1 ? 'INV' : 'INV'}`
+  const n = statsByPerson.value.get(personId)?.count ?? 0
+  return `${n} INV`
 }
 
 const roleFilter = ref<'All' | string>('All')

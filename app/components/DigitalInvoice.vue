@@ -26,34 +26,18 @@ type Props = {
 
 const props = defineProps<Props>()
 
-function symbolFor(currency: string | null): string {
-  return currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
-}
-
 function fmt(n: number | null): string {
   return n == null ? '—' : n.toFixed(2)
 }
 
 function fmtWithSymbol(n: number | null): string {
-  if (n == null) return '—'
-  const s = symbolFor(props.currency)
-  return `${s} ${n.toFixed(2)}`.trim()
-}
-
-function formatDate(iso: string | null | undefined, fallback?: string | null): string {
-  const src = iso || fallback || ''
-  if (!src) return '—'
-  const d = new Date(src)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d
-    .toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
-    .toUpperCase()
+  return formatAmount(n, props.currency)
 }
 
 const shortId = computed(() => props.invoiceId.slice(0, 8).toUpperCase())
 const itemCount = computed(() => props.items.length)
 const isVoided = computed(() => !!props.voidedAt)
-const voidedDateLabel = computed(() => formatDate(props.voidedAt))
+const voidedDateLabel = computed(() => formatLongDate(props.voidedAt))
 </script>
 
 <template>
@@ -100,7 +84,7 @@ const voidedDateLabel = computed(() => formatDate(props.voidedAt))
       </div>
       <div class="dinv-meta-block r">
         <span class="dinv-key mono">Date</span>
-        <span class="dinv-val">{{ formatDate(invoiceDate, createdAt) }}</span>
+        <span class="dinv-val">{{ formatLongDate(invoiceDate, createdAt) }}</span>
         <span v-if="invoiceNumber" class="dinv-sub mono">№ {{ invoiceNumber }}</span>
       </div>
     </section>

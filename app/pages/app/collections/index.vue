@@ -171,20 +171,6 @@ const { data: invoiceRows, pending: invoicesPending } = await useAsyncData(
   { default: () => [] as InvoiceCardRow[], watch: [active, user] },
 )
 
-function formatDate(iso: string | null, fallback: string): string {
-  const src = iso || fallback
-  const d = new Date(src)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }).toUpperCase()
-}
-
-function formatAmount(n: number | null, currency: string | null): string {
-  if (n == null) return '—'
-  const sym =
-    currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
-  return `${sym} ${Number(n).toFixed(2)}`.trim()
-}
-
 function formatTotal(n: number): string {
   return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
@@ -325,7 +311,7 @@ const monthLabel = new Date()
                 <div class="thumb" />
                 <div class="name">{{ item.vendor || 'Unknown vendor' }}</div>
                 <div class="row">
-                  <span class="date">{{ formatDate(item.invoice_date, item.created_at) }}</span>
+                  <span class="date">{{ formatShortDate(item.invoice_date, item.created_at) }}</span>
                   <span class="amt">{{ formatAmount(item.total, item.currency) }}</span>
                 </div>
               </NuxtLink>

@@ -67,18 +67,7 @@ const { data: collectionRows } = await useAsyncData(
 
 const collectionOptions = computed<{ id: string; label: string }[]>(() => {
   const rows = collectionRows.value ?? []
-  const byId = new Map(rows.map((r) => [r.id, r] as const))
-  const labelFor = (row: CollectionRow): string => {
-    const chain: string[] = []
-    let cur: CollectionRow | undefined = row
-    let safety = 0
-    while (cur && safety < 50) {
-      chain.unshift(cur.name)
-      cur = cur.parent_id ? byId.get(cur.parent_id) : undefined
-      safety++
-    }
-    return chain.join(' › ')
-  }
+  const labelFor = buildCollectionPathLabeler(rows)
   return rows
     .map((r) => ({ id: r.id, label: labelFor(r) }))
     .sort((a, b) => a.label.localeCompare(b.label))
@@ -125,15 +114,8 @@ function onChange(e: Event) {
   if (file) void handleFile(file)
 }
 
-function formatCurrency(n: number | null, currency: string | null): string {
-  if (n == null) return '—'
-  const symbol =
-    currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency || ''
-  return `${symbol} ${n.toFixed(2)}`.trim()
-}
-
 const totalDisplay = computed(() =>
-  result.value ? formatCurrency(result.value.total, result.value.currency) : '—'
+  result.value ? formatAmount(result.value.total, result.value.currency) : '—'
 )
 
 const confidenceDisplay = computed(() => {
@@ -173,7 +155,7 @@ async function handleFile(file: File) {
     fields.date = data.date ?? ''
     fields.tax =
       data.tax != null
-        ? `${formatCurrency(data.tax, data.currency)}${
+        ? `${formatAmount(data.tax, data.currency)}${
             data.tax_rate != null ? ` (${Math.round(data.tax_rate * 100)}%)` : ''
           }`
         : ''
@@ -383,7 +365,7 @@ onBeforeUnmount(() => {
             <div class="items-hdr">LINE ITEMS</div>
             <div v-for="(it, i) in result.items" :key="i" class="item-row">
               <span class="item-desc">{{ it.description }}</span>
-              <span class="item-amt">{{ formatCurrency(it.amount, result.currency) }}</span>
+              <span class="item-amt">{{ formatAmount(it.amount, result.currency) }}</span>
             </div>
           </div>
 

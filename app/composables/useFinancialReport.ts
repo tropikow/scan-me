@@ -157,27 +157,9 @@ export function useFinancialReport() {
     const links = (linksRes.error ? [] : (linksRes.data ?? [])) as LinkRow[]
     const items = (itemsRes.error ? [] : (itemsRes.data ?? [])) as ItemDbRow[]
 
-    const peopleById = new Map<string, PersonRow>()
-    for (const p of people) peopleById.set(p.id, p)
-    const collById = new Map<string, CollectionRow>()
-    for (const c of collections) collById.set(c.id, c)
-
-    const rootCache = new Map<string, string | null>()
-    function rootOf(id: string): string | null {
-      const cached = rootCache.get(id)
-      if (cached !== undefined) return cached
-      let cur = collById.get(id)
-      let safety = 0
-      while (cur && cur.parent_id && safety < 50) {
-        const next = collById.get(cur.parent_id)
-        if (!next) break
-        cur = next
-        safety++
-      }
-      const rootId = cur?.id ?? null
-      rootCache.set(id, rootId)
-      return rootId
-    }
+    const peopleById = new Map(people.map((p) => [p.id, p] as const))
+    const collById = new Map(collections.map((c) => [c.id, c] as const))
+    const rootOf = buildCollectionRootResolver(collections)
 
     const totals = liveInvoices.map((i) => Number(i.total ?? 0))
     const spend = totals.reduce((acc, n) => acc + n, 0)

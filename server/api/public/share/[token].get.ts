@@ -1,7 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
 type CollectionDTO = {
   id: string
   name: string
@@ -25,7 +23,7 @@ export default defineEventHandler(async (event) => {
   // Service-role client bypasses RLS because the visitor is anonymous and
   // cannot satisfy `auth.uid()` predicates on `people` / `collections`.
   const admin = createClient(supabasePublic.url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   })
 
   const { data: person, error: personErr } = await admin
@@ -53,10 +51,8 @@ export default defineEventHandler(async (event) => {
     console.error('[public-share] collections lookup failed', colErr.message)
   }
 
-  const collections = (collectionsRaw ?? []) as CollectionDTO[]
-
   return {
     person: { name: person.name, role: person.role },
-    collections
+    collections: (collectionsRaw ?? []) as CollectionDTO[],
   }
 })

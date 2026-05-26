@@ -1,31 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 
-const MAX_BYTES = 10 * 1024 * 1024
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-type SniffedMime = 'image/jpeg' | 'image/png' | 'image/webp' | null
-
-function sniffImageMime(buf: Buffer): SniffedMime {
-  if (buf.length < 12) return null
-  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg'
-  if (
-    buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47 &&
-    buf[4] === 0x0d && buf[5] === 0x0a && buf[6] === 0x1a && buf[7] === 0x0a
-  ) return 'image/png'
-  if (
-    buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 &&
-    buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50
-  ) return 'image/webp'
-  return null
-}
-
-const MIME_TO_EXT: Record<NonNullable<SniffedMime>, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp'
-}
-
 type IncomingItem = {
   description?: unknown
   quantity?: unknown
@@ -50,37 +25,6 @@ type IncomingPayload = {
   collection_id?: unknown
 }
 
-function toUuid(v: unknown): string | null {
-  if (typeof v !== 'string') return null
-  const s = v.trim()
-  return UUID_RE.test(s) ? s.toLowerCase() : null
-}
-function toStr(v: unknown, max = 500): string | null {
-  if (typeof v !== 'string') return null
-  const s = v.trim()
-  if (!s) return null
-  return s.slice(0, max)
-}
-function toNum(v: unknown): number | null {
-  if (typeof v === 'number' && Number.isFinite(v)) return v
-  if (typeof v === 'string' && v.trim() !== '') {
-    const n = Number(v)
-    return Number.isFinite(n) ? n : null
-  }
-  return null
-}
-function toDate(v: unknown): string | null {
-  if (typeof v !== 'string') return null
-  return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null
-}
-function toTags(v: unknown): string[] {
-  if (!Array.isArray(v)) return []
-  return v
-    .map((t) => (typeof t === 'string' ? t.trim().slice(0, 40) : null))
-    .filter((t): t is string => !!t)
-    .slice(0, 20)
-}
-
 export default defineEventHandler(async (event) => {
   const token = getRouterParam(event, 'token')
   if (!token || !UUID_RE.test(token)) {
@@ -95,7 +39,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const admin = createClient(supabasePublic.url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   })
 
   const { data: person, error: personErr } = await admin
@@ -121,7 +65,7 @@ export default defineEventHandler(async (event) => {
   if (!filePart || !filePart.data || filePart.data.length === 0) {
     throw createError({ statusCode: 400, statusMessage: 'Missing image file' })
   }
-  if (filePart.data.length > MAX_BYTES) {
+  if (filePart.data.length > MAX_IMAGE_BYTES) {
     throw createError({ statusCode: 413, statusMessage: 'Image too large (max 10 MB)' })
   }
   const mime = sniffImageMime(filePart.data)
@@ -138,9 +82,8 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // If a collection_id is provided, it MUST belong to the link's owner.
-  // This stops a tampered payload from attaching the invoice to a collection
-  // that belongs to a different account.
+  // A submitted collection_id must belong to the share link's owner; otherwise
+  // a tampered payload could attach the invoice to another account's collection.
   const collectionId = toUuid(payload.collection_id)
   if (collectionId) {
     const { data: col, error: colErr } = await admin
@@ -164,7 +107,7 @@ export default defineEventHandler(async (event) => {
     console.error('[public-share/invoice] storage upload failed', {
       err: uploadErr.message,
       ownerId: person.user_id,
-      path: objectPath
+      path: objectPath,
     })
     throw createError({ statusCode: 502, statusMessage: 'Failed to store image' })
   }
@@ -185,7 +128,7 @@ export default defineEventHandler(async (event) => {
     notes: toStr(payload.notes, 2000),
     tags: toTags(payload.tags),
     image_path: objectPath,
-    person_id: person.id
+    person_id: person.id,
   }
 
   const { error: insertErr } = await admin.from('invoices').insert(invoiceRow)
@@ -207,7 +150,7 @@ export default defineEventHandler(async (event) => {
         description,
         quantity: toNum(it.quantity),
         unit_price: toNum(it.unit_price),
-        amount
+        amount,
       }
     })
     .filter((r): r is NonNullable<typeof r> => r !== null)
