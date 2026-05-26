@@ -11,7 +11,8 @@ SaaS para digitalizar facturas físicas mediante OCR. El usuario fotografía un 
 - Enlaces de compartición pública (`/p/[token]`) que permiten a un tercero subir facturas a nombre del propietario sin autenticación.
 - Anulación suave (soft-delete) de facturas con inmutabilidad post-anulación.
 - Exportación CSV de facturas con filtros.
-- Diseño monocromo, hairline-driven, responsive (breakpoint canónico en 880px).
+- Reporte financiero PDF con KPIs, gráficos y análisis por proveedor, categoría y persona, filtrable por período.
+- Diseño responsive con design tokens (paleta inspirada en Apple, tipografía Inter + JetBrains Mono).
 
 ## Stack
 
@@ -21,6 +22,8 @@ SaaS para digitalizar facturas físicas mediante OCR. El usuario fotografía un 
 | UI | Vue 3, CSS custom properties (sin framework de componentes) |
 | Auth + DB + Storage | Supabase (Postgres + RLS) |
 | OCR | Groq Vision (`meta-llama/llama-4-scout-17b-16e-instruct`) |
+| Generación de PDF | jsPDF + jspdf-autotable |
+| Tests | Vitest + happy-dom + @nuxt/test-utils |
 | Gestor de paquetes | pnpm |
 
 Dependencias deliberadamente ausentes: Pinia, axios, librerías de UI.
@@ -60,7 +63,9 @@ La service role key **nunca** se expone al cliente y **nunca** se utiliza fuera 
 | Comando | Descripción |
 |---------|-------------|
 | `pnpm dev` | Servidor de desarrollo (Nitro + Vite) |
-| `pnpm build` | Build de producción (`.output/`) |
+| `pnpm test` | Tests en watch mode (Vitest) |
+| `pnpm test:run` | Corrida única de tests (gate de CI/build) |
+| `pnpm build` | Corre `vitest run` y luego `nuxt build`. Si algún test falla, el build aborta. |
 | `pnpm preview` | Sirve el build de producción localmente |
 | `pnpm generate` | Prerender estático (no es el target principal; las rutas SSR usan Nitro) |
 
@@ -96,16 +101,21 @@ Dos superficies de entrada comparten la misma base de datos:
 ├── app/
 │   ├── assets/css/         # main.css (design tokens)
 │   ├── components/         # AuthView, DigitalInvoice
+│   ├── composables/        # lógica de negocio (financial report, formatters, collection tree)
 │   ├── layouts/            # default, landing, app
 │   ├── pages/
-│   │   ├── app/            # rutas autenticadas
+│   │   ├── app/            # rutas autenticadas (dashboard, scan, invoices, collections, people)
 │   │   └── p/[token].vue   # compartición pública
 │   └── app.vue
-├── server/api/             # endpoints Nitro
-├── supabase/migrations/    # SQL versionado
+├── server/
+│   ├── api/                # endpoints Nitro
+│   └── utils/              # MIME sniff, validators, runner de Groq OCR
+├── tests/                  # Vitest (composables + server/utils)
+├── supabase/migrations/    # SQL versionado e idempotente
 ├── public/                 # assets estáticos
 ├── nuxt.config.ts
-├── .claude/                # CLAUDE.md guidelines (security, design)
+├── vitest.config.ts
+├── .claude/                # design + security guidelines
 └── package.json
 ```
 
@@ -131,13 +141,7 @@ Bucket `receipts` privado. Convención de path: `{user_id}/{invoice_id}.{ext}`. 
 
 ## Diseño
 
-El sistema de diseño está documentado en [`.claude/design.md`](.claude/design.md). Resumen:
-
-- Paleta monocroma: tinta sobre off-white cálido, separadores de 1px al ~9% de negro.
-- Tipografía Geist (sans) + Geist Mono (numerales, meta, eyebrows).
-- Tokens CSS en `:root` (`app/assets/css/main.css`); referenciar tokens, nunca hex crudo.
-- Radio default de paneles: `--radius` (14px).
-- Breakpoint móvil canónico: 880px.
+Sistema visual inspirado en Apple: neutros con un único color de acción, tipografía Inter (UI y headings) + JetBrains Mono (montos e IDs), spacing en base 4px, sin box-shadows salvo en popovers. Tokens CSS definidos en `:root` de `app/assets/css/main.css`; referenciar tokens, nunca hex crudo. Especificación completa (paleta, escala tipográfica, spacing, radius, breakpoints) en [`.claude/design.md`](.claude/design.md).
 
 ## Seguridad
 

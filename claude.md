@@ -27,14 +27,14 @@ Estructura default de Nuxt 4. Convenciones específicas:
 - Lógica de negocio en `composables/`, no en componentes.
 
 ## Convenciones detalladas
-@.claude/security.md
 @.claude/design.md
+@.claude/security.md
 
 ## Comandos
 - `pnpm dev` — desarrollo local
-- `pnpm build` — build de producción
-- `pnpm typecheck` — verificación de tipos TypeScript
-- `pnpm lint` — ESLint
+- `pnpm test` — tests Vitest en watch
+- `pnpm test:run` — tests one-shot (gate del build)
+- `pnpm build` — corre `vitest run` y luego `nuxt build`; el build aborta si los tests fallan
 
 ## Reglas de comportamiento
 1. **IMPORTANT**: si los requerimientos del usuario son ambiguos o 
@@ -46,9 +46,10 @@ Estructura default de Nuxt 4. Convenciones específicas:
    qué convención se rompería y qué consecuencias trae, y pide
    confirmación explícita antes de proceder.
 
-3. Después de cualquier cambio de código, corre `pnpm typecheck` y 
-   `pnpm lint`. Si hay errores, arreglalos antes de dar la tarea 
-   por terminada. Sin esto, el despliegue a producción falla.
+3. Después de cualquier cambio de código, corre `pnpm test:run` (o 
+   `pnpm build`, que lo encadena). Si algún test falla, arreglá la 
+   causa antes de dar la tarea por terminada. Sin esto, el build 
+   de producción aborta.
 
 4. Respuestas y resúmenes directos al grano. Sin preámbulos, sin 
    "claro!", sin explicar lo obvio. Si una explicación no aporta 
