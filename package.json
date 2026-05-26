@@ -11,6 +11,9 @@
     "test": "vitest",
     "test:run": "vitest run"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "@nuxtjs/supabase": "^2.0.8",
     "groq-sdk": "^1.2.0",
