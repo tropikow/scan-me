@@ -22,8 +22,8 @@ jobs:
     env:
       # @nuxtjs/supabase requires these at build time. CI uses dummy values
       # since the build only validates compilation, not runtime connectivity.
-      SUPABASE_URL: https://smisyeccpfwnhdapbduy.supabase.co
-      SUPABASE_KEY: sb_publishable_75ufHXZ9GMpNg8ZbuH9PVA_74S2NcoV
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_KEY: ci-placeholder-anon-key
 
     steps:
       - name: Checkout
@@ -48,3 +48,41 @@ jobs:
 
       - name: Build
         run: pnpm exec nuxt build
+
+  deploy:
+    name: Deploy to Vercel (production)
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build with Vercel
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
