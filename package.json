@@ -3,11 +3,13 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "vitest run && nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@nuxtjs/supabase": "^2.0.8",
@@ -19,6 +21,10 @@
     "vue-router": "^5.0.6"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1"
+    "@nuxt/test-utils": "^4.0.3",
+    "@types/node": "^25.9.1",
+    "@vue/test-utils": "^2.4.10",
+    "happy-dom": "^20.9.0",
+    "vitest": "^4.1.7"
   }
 }
